@@ -2,6 +2,7 @@ export const path = {
   home: '/',
   forbidden: '/forbidden',
   login: '/login',
+  becomeMentor: '/become-mentor',
   paymentSuccess: '/payment/success',
   paymentCancel: '/payment/cancel',
 

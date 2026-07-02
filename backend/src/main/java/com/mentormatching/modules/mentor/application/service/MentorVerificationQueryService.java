@@ -63,7 +63,9 @@ public class MentorVerificationQueryService implements GetCurrentMentorVerificat
     private CurrentMentorVerificationDetails toDetails(MentorVerification verification) {
         return new CurrentMentorVerificationDetails(verification.getId(), verification.getMentorId(),
                 verification.getFullName(), verification.getIdCardNumber(), verification.getIdCardFrontUrl(),
-                verification.getIdCardBackUrl(), verification.getSelfieWithIdUrl(),
+                verification.getIdCardFrontMediaId(), verification.getIdCardBackUrl(),
+                verification.getIdCardBackMediaId(), verification.getSelfieWithIdUrl(),
+                verification.getSelfieWithIdMediaId(),
                 verification.getVerificationStatus().name(), verification.getVerifiedBy(),
                 verification.getVerifiedAt(), verification.getRejectionReason(), verification.getCreatedAt(),
                 verification.getUpdatedAt());

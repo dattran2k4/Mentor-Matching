@@ -4,7 +4,6 @@ import { QUERY_KEYS } from '@/constants/query-keys'
 import { mentorApi } from '@/services/mentor.api'
 import type {
   MentorAchievementDetailApiResponse,
-  MentorAvailabilityDetailApiResponse,
   MentorDetailApiResponse,
   MentorSubjectDetailApiResponse,
   MentorTraitsDetailApiResponse
@@ -15,26 +14,21 @@ export type MentorProfileApiBundle = {
   subjects: MentorSubjectDetailApiResponse[]
   traits: MentorTraitsDetailApiResponse | null
   achievements: MentorAchievementDetailApiResponse[]
-  availabilities: MentorAvailabilityDetailApiResponse[]
 }
 
 async function fetchMentorProfile(mentorId: number): Promise<MentorProfileApiBundle> {
   const detail = (await mentorApi.getMentorDetail(mentorId)).data
-  const [subjectsResult, traitsResult, achievementsResult, availabilitiesResult] =
-    await Promise.allSettled([
-      mentorApi.getMentorSubjects(mentorId),
-      mentorApi.getMentorTraits(mentorId),
-      mentorApi.getMentorAchievements(mentorId),
-      mentorApi.getMentorAvailabilities(mentorId)
-    ])
+  const [subjectsResult, traitsResult, achievementsResult] = await Promise.allSettled([
+    mentorApi.getMentorSubjects(mentorId),
+    mentorApi.getMentorTraits(mentorId),
+    mentorApi.getMentorAchievements(mentorId)
+  ])
 
   return {
     detail,
     subjects: subjectsResult.status === 'fulfilled' ? subjectsResult.value.data : [],
     traits: traitsResult.status === 'fulfilled' ? traitsResult.value.data : null,
-    achievements: achievementsResult.status === 'fulfilled' ? achievementsResult.value.data : [],
-    availabilities:
-      availabilitiesResult.status === 'fulfilled' ? availabilitiesResult.value.data : []
+    achievements: achievementsResult.status === 'fulfilled' ? achievementsResult.value.data : []
   }
 }
 

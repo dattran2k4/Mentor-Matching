@@ -3,6 +3,8 @@ package com.mentormatching.modules.notification.infrastructure.persistence;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 
 import com.mentormatching.modules.notification.application.port.out.NotificationRepositoryPort;
@@ -45,5 +47,26 @@ public class NotificationPersistenceAdapter implements NotificationRepositoryPor
         return notificationJpaRepository.findByUserIdAndReadFalseOrderByCreatedAtDesc(userId).stream()
                 .map(notificationPersistenceMapper::toDomain)
                 .toList();
+    }
+
+    @Override
+    public Page<Notification> findByUserId(Long userId, Pageable pageable) {
+        return notificationJpaRepository.findByUserIdOrderByCreatedAtDesc(userId, pageable)
+                .map(notificationPersistenceMapper::toDomain);
+    }
+
+    @Override
+    public long countUnreadByUserId(Long userId) {
+        return notificationJpaRepository.countByUserIdAndReadFalse(userId);
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        notificationJpaRepository.deleteById(id);
+    }
+
+    @Override
+    public void markAllAsReadByUserId(Long userId) {
+        notificationJpaRepository.markAllAsReadByUserId(userId);
     }
 }

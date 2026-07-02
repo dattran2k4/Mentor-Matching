@@ -2,17 +2,19 @@ import { env } from '@/config/env'
 import http from '@/libs/http'
 import { mockMentorApi } from '@/services/mock/mentor.mock.api'
 import type { ApiResponse } from '@/types/api/common'
+import type { MentorCalendarApiResponse } from '@/types/api/mentor-calendar'
 import type {
   AdminMentorDetailApiResponse,
   AdminMentorListPageApiResponse,
   AdminMentorVerificationDetailApiResponse,
   AdminMentorVerificationListPageApiResponse,
   CurrentMentorApiResponse,
+  CurrentMentorOnboardingStatusApiResponse,
   CurrentMentorTraitsApiResponse,
   CurrentMentorVerificationApiResponse,
   GetAdminMentorVerificationsQueryParams,
   GetAdminMentorsQueryParams,
-  GetMentorsQueryParams,
+  MentorsQueryParams,
   MentorAchievementDetailApiResponse,
   MentorAvailabilityDetailApiResponse,
   MentorDetailApiResponse,
@@ -23,6 +25,9 @@ import type {
   ReviewMentorApprovalRequest,
   ReviewMentorVerificationRequest,
   SaveCurrentMentorAchievementRequest,
+  SaveCurrentMentorAvailabilityRequest,
+  CreateCurrentMentorAvailabilityApiResponse,
+  UpdateCurrentMentorAvatarRequest,
   UpdateCurrentMentorRequest,
   UpdateCurrentMentorTraitsRequest,
   UpsertCurrentMentorSubjectRequest,
@@ -31,9 +36,13 @@ import type {
 
 const MENTOR_ENDPOINTS = {
   me: 'mentors/me',
+  myAvatar: 'mentors/me/avatar',
+  myOnboardingStatus: 'mentors/me/onboarding-status',
+  mySubmission: 'mentors/me/submission',
   mentors: 'mentors',
   mentorDetail: (mentorId: number) => `mentors/${mentorId}`,
   mySubjects: 'mentors/me/subjects',
+  mySubjectDetail: (mentorSubjectId: number) => `mentors/me/subjects/${mentorSubjectId}`,
   mentorSubjects: (mentorId: number) => `mentors/${mentorId}/subjects`,
   myTraits: 'mentors/me/traits',
   personalityOptions: 'mentors/personality-options',
@@ -43,7 +52,11 @@ const MENTOR_ENDPOINTS = {
   myAchievementDetail: (achievementId: number) => `mentors/me/achievements/${achievementId}`,
   mentorAchievements: (mentorId: number) => `mentors/${mentorId}/achievements`,
   myVerification: 'mentors/me/verification',
+  myAvailabilities: 'scheduling/me/availabilities',
+  myAvailabilityDetail: (availabilityId: number) =>
+    `scheduling/me/availabilities/${availabilityId}`,
   mentorAvailabilities: (mentorId: number) => `mentors/${mentorId}/availabilities`,
+  mentorCalendarBooking: (mentorId: number) => `mentors/${mentorId}/calendar-booking`,
   adminMentors: 'admin/mentors',
   adminMentorDetail: (mentorId: number) => `admin/mentors/${mentorId}`,
   adminMentorApproval: (mentorId: number) => `admin/mentors/${mentorId}/approval`,
@@ -53,16 +66,45 @@ const MENTOR_ENDPOINTS = {
 } as const
 
 const defaultMentorApi = {
+  createCurrentMentor: async (
+    payload: UpdateCurrentMentorRequest
+  ): Promise<ApiResponse<CurrentMentorApiResponse>> =>
+    (await http.post<ApiResponse<CurrentMentorApiResponse>>(MENTOR_ENDPOINTS.me, payload)).data,
+
   getCurrentMentor: async (): Promise<ApiResponse<CurrentMentorApiResponse>> =>
     (await http.get<ApiResponse<CurrentMentorApiResponse>>(MENTOR_ENDPOINTS.me)).data,
+
+  getCurrentMentorOnboardingStatus: async (): Promise<
+    ApiResponse<CurrentMentorOnboardingStatusApiResponse>
+  > =>
+    (
+      await http.get<ApiResponse<CurrentMentorOnboardingStatusApiResponse>>(
+        MENTOR_ENDPOINTS.myOnboardingStatus
+      )
+    ).data,
+
+  submitCurrentMentorApplication: async (): Promise<
+    ApiResponse<CurrentMentorOnboardingStatusApiResponse>
+  > =>
+    (
+      await http.post<ApiResponse<CurrentMentorOnboardingStatusApiResponse>>(
+        MENTOR_ENDPOINTS.mySubmission
+      )
+    ).data,
 
   updateCurrentMentor: async (
     payload: UpdateCurrentMentorRequest
   ): Promise<ApiResponse<CurrentMentorApiResponse>> =>
     (await http.put<ApiResponse<CurrentMentorApiResponse>>(MENTOR_ENDPOINTS.me, payload)).data,
 
+  updateCurrentMentorAvatar: async (
+    payload: UpdateCurrentMentorAvatarRequest
+  ): Promise<ApiResponse<CurrentMentorApiResponse>> =>
+    (await http.patch<ApiResponse<CurrentMentorApiResponse>>(MENTOR_ENDPOINTS.myAvatar, payload))
+      .data,
+
   getMentors: async (
-    params?: GetMentorsQueryParams
+    params?: MentorsQueryParams
   ): Promise<ApiResponse<MentorListPageApiResponse>> =>
     (await http.get<ApiResponse<MentorListPageApiResponse>>(MENTOR_ENDPOINTS.mentors, { params }))
       .data,
@@ -84,6 +126,9 @@ const defaultMentorApi = {
         payload
       )
     ).data,
+
+  deleteCurrentMentorSubject: async (mentorSubjectId: number): Promise<ApiResponse<null>> =>
+    (await http.delete<ApiResponse<null>>(MENTOR_ENDPOINTS.mySubjectDetail(mentorSubjectId))).data,
 
   getMentorSubjects: async (
     mentorId: number
@@ -196,6 +241,54 @@ const defaultMentorApi = {
     (
       await http.get<ApiResponse<MentorAvailabilityDetailApiResponse[]>>(
         MENTOR_ENDPOINTS.mentorAvailabilities(mentorId)
+      )
+    ).data,
+
+  getCurrentMentorAvailabilities: async (): Promise<
+    ApiResponse<MentorAvailabilityDetailApiResponse[]>
+  > =>
+    (
+      await http.get<ApiResponse<MentorAvailabilityDetailApiResponse[]>>(
+        MENTOR_ENDPOINTS.myAvailabilities
+      )
+    ).data,
+
+  createCurrentMentorAvailability: async (
+    payload: SaveCurrentMentorAvailabilityRequest
+  ): Promise<ApiResponse<CreateCurrentMentorAvailabilityApiResponse>> =>
+    (
+      await http.post<ApiResponse<CreateCurrentMentorAvailabilityApiResponse>>(
+        MENTOR_ENDPOINTS.myAvailabilities,
+        payload
+      )
+    ).data,
+
+  updateCurrentMentorAvailability: async (
+    availabilityId: number,
+    payload: SaveCurrentMentorAvailabilityRequest
+  ): Promise<ApiResponse<null>> =>
+    (
+      await http.put<ApiResponse<null>>(
+        MENTOR_ENDPOINTS.myAvailabilityDetail(availabilityId),
+        payload
+      )
+    ).data,
+
+  deleteCurrentMentorAvailability: async (availabilityId: number): Promise<ApiResponse<null>> =>
+    (await http.delete<ApiResponse<null>>(MENTOR_ENDPOINTS.myAvailabilityDetail(availabilityId)))
+      .data,
+
+  getMentorCalendarBooking: async (
+    mentorId: number,
+    from: string,
+    to: string
+  ): Promise<ApiResponse<MentorCalendarApiResponse>> =>
+    (
+      await http.get<ApiResponse<MentorCalendarApiResponse>>(
+        MENTOR_ENDPOINTS.mentorCalendarBooking(mentorId),
+        {
+          params: { from, to }
+        }
       )
     ).data,
 

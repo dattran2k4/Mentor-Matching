@@ -35,13 +35,13 @@ public class MentorProfileService implements UpdateCurrentMentorUseCase {
 
         validateLocationReferences(command);
 
-        mentorProfile.updateProfile(command.avatarUrl(), command.gender(), command.hometownCityId(),
-                command.currentDistrictId(), command.headline(), command.introduction(),
-                command.teachingStyle(), command.experienceYears(), command.currentPosition(),
-                command.workplace(), command.education(), command.major(), command.meetingType());
+        mentorProfile.updateProfile(command.gender(), command.hometownCityId(), command.currentDistrictId(),
+                command.headline(), command.introduction(), command.teachingStyle(), command.experienceYears(),
+                command.currentPosition(), command.workplace(), command.education(), command.major(),
+                command.meetingType());
         MentorProfile savedMentorProfile = mentorProfileRepositoryPort.save(mentorProfile);
 
-        return mentorReadRepositoryPort.findCurrentMentorByUserId(savedMentorProfile.getUserId())
+        return mentorReadRepositoryPort.findCurrentMentorByMentorId(savedMentorProfile.getId())
                 .orElseThrow(() -> new ResourceNotFoundException("Mentor profile not found"));
     }
 

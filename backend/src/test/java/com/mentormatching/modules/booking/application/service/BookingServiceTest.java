@@ -23,6 +23,7 @@ import com.mentormatching.modules.booking.application.dto.RejectBookingByMentorC
 import com.mentormatching.modules.booking.application.port.out.BookingAvailabilityLookupPort;
 import com.mentormatching.modules.booking.application.port.out.BookingMentorLookupPort;
 import com.mentormatching.modules.booking.application.port.out.BookingMentorSubjectLookupPort;
+import com.mentormatching.modules.booking.application.port.out.BookingNotificationPort;
 import com.mentormatching.modules.booking.application.port.out.BookingRepositoryPort;
 import com.mentormatching.modules.booking.application.port.out.BookingUserLookupPort;
 import com.mentormatching.modules.booking.domain.Booking;
@@ -47,6 +48,7 @@ class BookingServiceTest {
     private BookingMentorSubjectLookupPort bookingMentorSubjectLookupPort;
     private BookingAvailabilityLookupPort bookingAvailabilityLookupPort;
     private PaymentRepositoryPort paymentRepositoryPort;
+    private BookingNotificationPort bookingNotificationPort;
     private BookingService bookingService;
 
     @BeforeEach
@@ -57,8 +59,10 @@ class BookingServiceTest {
         bookingMentorSubjectLookupPort = mock(BookingMentorSubjectLookupPort.class);
         bookingAvailabilityLookupPort = mock(BookingAvailabilityLookupPort.class);
         paymentRepositoryPort = mock(PaymentRepositoryPort.class);
+        bookingNotificationPort = mock(BookingNotificationPort.class);
         bookingService = new BookingService(bookingRepositoryPort, bookingUserLookupPort, bookingMentorLookupPort,
-                bookingMentorSubjectLookupPort, bookingAvailabilityLookupPort, paymentRepositoryPort);
+                bookingMentorSubjectLookupPort, bookingAvailabilityLookupPort, paymentRepositoryPort,
+                bookingNotificationPort);
     }
 
     @Test

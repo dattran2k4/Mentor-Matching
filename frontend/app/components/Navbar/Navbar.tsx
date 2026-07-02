@@ -106,7 +106,7 @@ const Navbar = () => {
                 variant: 'outline'
               })
             )}
-            to={path.mentorPanel.root}
+            to={path.becomeMentor}
           >
             Trở thành Mentor
           </Link>
@@ -197,7 +197,7 @@ const Navbar = () => {
               <div className='mt-5 flex flex-col gap-3 border-t border-slate-200/50 pt-5'>
                 <Link
                   className={cn(buttonVariants({ className: 'rounded-xl', variant: 'outline' }))}
-                  to={path.mentorPanel.root}
+                  to={path.becomeMentor}
                   onClick={() => setMobileOpen(false)}
                 >
                   Trở thành Mentor

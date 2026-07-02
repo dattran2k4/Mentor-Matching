@@ -56,8 +56,9 @@ public class MentorSubjectController {
     public ApiResponse<MentorSubjectDetailResponse> upsertCurrentMentorSubject(
             @AuthenticationPrincipal AuthenticatedPrincipal principal,
             @Valid @RequestBody UpsertCurrentMentorSubjectRequest request) {
+        log.info("Request for Upsert subject + grade for mentor");
         return apiResponseFactory.success(MentorSubjectDetailResponse.from(
-                upsertCurrentMentorSubjectUseCase.upsertCurrentMentorSubject(request.toCommand(principal))),
+                        upsertCurrentMentorSubjectUseCase.upsertCurrentMentorSubject(request.toCommand(principal))),
                 "Save current mentor subject successfully");
     }
 

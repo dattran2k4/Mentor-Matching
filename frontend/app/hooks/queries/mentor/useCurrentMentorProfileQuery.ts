@@ -60,11 +60,11 @@ export function getCurrentMentorProfileQueryOptions() {
   })
 }
 
-export function useCurrentMentorProfileQuery() {
+export function useCurrentMentorProfileQuery(enabled = true) {
   const accessToken = useAuthStore((state) => state.accessToken)
 
   return useQuery({
     ...getCurrentMentorProfileQueryOptions(),
-    enabled: Boolean(accessToken)
+    enabled: Boolean(accessToken) && enabled
   })
 }

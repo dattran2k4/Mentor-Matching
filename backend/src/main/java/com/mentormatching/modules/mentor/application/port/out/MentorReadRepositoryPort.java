@@ -32,7 +32,7 @@ public interface MentorReadRepositoryPort {
 
     PageResponse<MentorListItem> findApprovedMentors(GetMentorsQuery query, List<Long> subjectGradeIds);
 
-    Optional<CurrentMentorDetails> findCurrentMentorByUserId(Long userId);
+    Optional<CurrentMentorDetails> findCurrentMentorByMentorId(Long mentorId);
 
     Optional<MentorDetail> findApprovedMentorDetailById(Long mentorId);
 

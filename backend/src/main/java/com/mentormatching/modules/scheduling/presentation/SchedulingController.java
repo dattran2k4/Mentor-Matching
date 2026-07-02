@@ -43,7 +43,6 @@ public class SchedulingController {
     private final ApiResponseFactory apiResponseFactory;
 
     @GetMapping("/me/availabilities")
-    @PreAuthorize("hasRole('MENTOR')")
     public ApiResponse<List<CurrentMentorAvailabilityResponse>> getCurrentMentorAvailabilities(
             @AuthenticationPrincipal AuthenticatedPrincipal principal) {
         List<CurrentMentorAvailabilityDetail> availabilities = getCurrentMentorAvailabilitiesUseCase
@@ -54,7 +53,6 @@ public class SchedulingController {
     }
 
     @PostMapping("/me/availabilities")
-    @PreAuthorize("hasRole('MENTOR')")
     public ApiResponse<CreateCurrentMentorAvailabilityResponse> createCurrentMentorAvailability(
             @AuthenticationPrincipal AuthenticatedPrincipal principal,
             @Valid @RequestBody CreateCurrentMentorAvailabilityRequest request) {
@@ -65,7 +63,6 @@ public class SchedulingController {
     }
 
     @PutMapping("/me/availabilities/{availabilityId}")
-    @PreAuthorize("hasRole('MENTOR')")
     public ApiResponse<Void> updateCurrentMentorAvailability(
             @AuthenticationPrincipal AuthenticatedPrincipal principal,
             @PathVariable Long availabilityId,
@@ -76,7 +73,6 @@ public class SchedulingController {
     }
 
     @DeleteMapping("/me/availabilities/{availabilityId}")
-    @PreAuthorize("hasRole('MENTOR')")
     public ApiResponse<Void> deleteCurrentMentorAvailability(
             @AuthenticationPrincipal AuthenticatedPrincipal principal,
             @PathVariable Long availabilityId) {

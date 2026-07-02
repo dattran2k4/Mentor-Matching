@@ -5,6 +5,7 @@ export default [
   layout('layouts/main-layout.tsx', [
     index('routes/home.tsx'),
     route('discover', 'routes/discover.tsx'),
+    route('become-mentor', 'routes/become-mentor.tsx'),
     route('mentor-profile/:id', 'routes/mentor-profile.tsx'),
     route('payment/success', 'routes/payment/success.tsx'),
     route('payment/cancel', 'routes/payment/cancel.tsx')

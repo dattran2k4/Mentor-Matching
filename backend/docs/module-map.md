@@ -112,6 +112,30 @@ Current Stripe direction:
 - `provider_transaction_id` stores PaymentIntent id after success.
 - `checkout.session.completed` should mark payment as paid.
 
+## Media
+
+Purpose:
+
+- Provider-neutral media asset records
+- Cloudinary signed direct-upload intent
+- Upload confirmation and provider metadata tracking
+
+Current direction:
+
+- Client requests an upload intent from backend.
+- Client uploads binary file directly to Cloudinary.
+- Client confirms the upload with backend.
+- Backend marks the media asset `READY`.
+- Business modules attach ready media ids to their own tables.
+
+Important distinction:
+
+- `media_assets.object_key` is the provider object key. For Cloudinary, it maps to `public_id`.
+- `media_assets.delivery_url` is for rendering/downloading; it is not the stable internal identity.
+- `access_type` is resolved by backend from media purpose, not chosen by client.
+
+See `media-upload.md` for the full flow.
+
 ## Review
 
 Purpose:

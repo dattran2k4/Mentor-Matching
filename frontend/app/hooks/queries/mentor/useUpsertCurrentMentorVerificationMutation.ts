@@ -37,10 +37,18 @@ export function useUpsertCurrentMentorVerificationMutation() {
         queryKey: QUERY_KEYS.mentor.currentProfile,
         exact: true
       })
+      void queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.mentor.currentOnboardingStatus,
+        exact: true
+      })
     },
     onError: () => {
       void queryClient.invalidateQueries({
         queryKey: QUERY_KEYS.mentor.currentVerification,
+        exact: true
+      })
+      void queryClient.invalidateQueries({
+        queryKey: QUERY_KEYS.mentor.currentOnboardingStatus,
         exact: true
       })
     }

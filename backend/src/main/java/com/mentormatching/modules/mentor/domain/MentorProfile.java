@@ -9,6 +9,7 @@ public class MentorProfile {
     private final Long id;
     private final Long userId;
     private String avatarUrl;
+    private Long avatarMediaId;
     private Gender gender;
     private Long hometownCityId;
     private Long currentDistrictId;
@@ -32,6 +33,7 @@ public class MentorProfile {
         this.id = data.id();
         this.userId = data.userId();
         this.avatarUrl = data.avatarUrl();
+        this.avatarMediaId = data.avatarMediaId();
         this.gender = data.gender();
         this.hometownCityId = data.hometownCityId();
         this.currentDistrictId = data.currentDistrictId();
@@ -52,16 +54,36 @@ public class MentorProfile {
         this.updatedAt = data.updatedAt();
     }
 
+    public static MentorProfile create(Long userId, Gender gender, Long hometownCityId, Long currentDistrictId,
+                                       String headline, String introduction, String teachingStyle,
+                                       Integer experienceYears, String currentPosition, String workplace,
+                                       String education, String major, MeetingType meetingType) {
+        LocalDateTime now = LocalDateTime.now();
+        MentorProfile mentorProfile = new MentorProfile(new MentorProfileRestoreData(null, userId, "", null, gender,
+                hometownCityId, currentDistrictId, headline, introduction, teachingStyle, experienceYears,
+                currentPosition, workplace, education, major, meetingType, MentorApprovalStatus.DRAFT, null, null,
+                null, now, now));
+        mentorProfile.validateExperienceYears(experienceYears);
+        return mentorProfile;
+    }
+
+    public static MentorProfile create(Long userId, String ignoredAvatarUrl, Gender gender, Long hometownCityId,
+                                       Long currentDistrictId, String headline, String introduction,
+                                       String teachingStyle, Integer experienceYears, String currentPosition,
+                                       String workplace, String education, String major, MeetingType meetingType) {
+        return create(userId, gender, hometownCityId, currentDistrictId, headline, introduction, teachingStyle,
+                experienceYears, currentPosition, workplace, education, major, meetingType);
+    }
+
     public static MentorProfile restore(MentorProfileRestoreData data) {
         return new MentorProfile(data);
     }
 
-    public void updateProfile(String avatarUrl, Gender gender, Long hometownCityId, Long currentDistrictId,
-                              String headline, String introduction, String teachingStyle,
-                              Integer experienceYears, String currentPosition, String workplace,
-                              String education, String major, MeetingType meetingType) {
+    public void updateProfile(Gender gender, Long hometownCityId, Long currentDistrictId, String headline,
+                              String introduction, String teachingStyle, Integer experienceYears,
+                              String currentPosition, String workplace, String education, String major,
+                              MeetingType meetingType) {
         validateExperienceYears(experienceYears);
-        this.avatarUrl = avatarUrl;
         this.gender = gender;
         this.hometownCityId = hometownCityId;
         this.currentDistrictId = currentDistrictId;
@@ -74,6 +96,38 @@ public class MentorProfile {
         this.education = education;
         this.major = major;
         this.meetingType = meetingType;
+    }
+
+    public void updateProfile(String ignoredAvatarUrl, Gender gender, Long hometownCityId, Long currentDistrictId,
+                              String headline, String introduction, String teachingStyle,
+                              Integer experienceYears, String currentPosition, String workplace,
+                              String education, String major, MeetingType meetingType) {
+        updateProfile(gender, hometownCityId, currentDistrictId, headline, introduction, teachingStyle,
+                experienceYears, currentPosition, workplace, education, major, meetingType);
+    }
+
+    public void updateAvatar(Long avatarMediaId, String avatarUrl) {
+        if (avatarMediaId == null) {
+            throw new InvalidDataException("Avatar media id is required");
+        }
+        if (avatarUrl == null || avatarUrl.isBlank()) {
+            throw new InvalidDataException("Avatar url is required");
+        }
+        this.avatarMediaId = avatarMediaId;
+        this.avatarUrl = avatarUrl;
+    }
+
+    public void submitForReview() {
+        if (approvalStatus == MentorApprovalStatus.APPROVED) {
+            throw new InvalidDataException("Approved mentor profile cannot be submitted");
+        }
+        if (approvalStatus == MentorApprovalStatus.SUSPENDED) {
+            throw new InvalidDataException("Suspended mentor profile cannot be submitted");
+        }
+        this.approvalStatus = MentorApprovalStatus.PENDING;
+        this.approvalNote = null;
+        this.approvedBy = null;
+        this.approvedAt = null;
     }
 
     public void approve(Long adminUserId, String approvalNote) {
@@ -127,6 +181,10 @@ public class MentorProfile {
 
     public String getAvatarUrl() {
         return avatarUrl;
+    }
+
+    public Long getAvatarMediaId() {
+        return avatarMediaId;
     }
 
     public Gender getGender() {

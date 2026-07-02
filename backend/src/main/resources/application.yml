@@ -54,6 +54,14 @@ app:
     currency: ${STRIPE_CURRENCY:vnd}
     success-url: ${STRIPE_SUCCESS_URL:http://localhost:5173/payment/success}
     cancel-url: ${STRIPE_CANCEL_URL:http://localhost:5173/payment/cancel}
+  media:
+    provider: ${APP_MEDIA_PROVIDER:CLOUDINARY}
+    max-file-size-bytes: ${APP_MEDIA_MAX_FILE_SIZE_BYTES:5242880}
+  cloudinary:
+    cloud-name: ${CLOUDINARY_CLOUD_NAME:}
+    api-key: ${CLOUDINARY_API_KEY:}
+    api-secret: ${CLOUDINARY_API_SECRET:}
+    upload-folder: ${CLOUDINARY_UPLOAD_FOLDER:mentor-matching}
 
 logging:
   level:

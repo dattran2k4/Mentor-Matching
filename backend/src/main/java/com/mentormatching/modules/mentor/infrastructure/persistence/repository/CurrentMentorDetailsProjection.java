@@ -17,6 +17,8 @@ public interface CurrentMentorDetailsProjection {
 
     String getAvatarUrl();
 
+    Long getAvatarMediaId();
+
     Gender getGender();
 
     Long getHometownCityId();

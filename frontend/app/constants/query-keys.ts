@@ -10,9 +10,12 @@ export const QUERY_KEYS = {
   },
   mentor: {
     currentProfile: ['mentor', 'current-profile'] as const,
+    currentOnboardingStatus: ['mentor', 'current-onboarding-status'] as const,
     currentVerification: ['mentor', 'current-verification'] as const,
     currentSchedule: ['mentor', 'current-schedule'] as const,
     detail: (mentorId: number) => ['mentor', 'detail', mentorId] as const,
+    calendar: (params: { mentorId: number; from: string; to: string }) =>
+      ['mentor', 'calendar', params] as const,
     list: (params: {
       page: number
       size: number

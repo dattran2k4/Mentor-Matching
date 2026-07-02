@@ -14,4 +14,6 @@ public interface ReviewJpaRepository extends JpaRepository<ReviewJpaEntity, Long
     List<ReviewJpaEntity> findByStudentUserId(Long studentUserId);
 
     List<ReviewJpaEntity> findByMentorId(Long mentorId);
+
+    org.springframework.data.domain.Page<ReviewJpaEntity> findByMentorId(Long mentorId, org.springframework.data.domain.Pageable pageable);
 }

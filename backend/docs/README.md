@@ -18,6 +18,7 @@ For any backend thread:
 - `database-notes.md`: DBML, Flyway, enum, and schema conventions.
 - `module-map.md`: current modules and implemented feature summary.
 - `payment-stripe.md`: Stripe Checkout and webhook context.
+- `media-upload.md`: media asset model and upload intent/confirm flow.
 - `team-conventions.md`: branch, commit, PR, and review conventions.
 
 ## API Source Of Truth

@@ -26,6 +26,10 @@ public class Notification {
         return new Notification(data);
     }
 
+    public static Notification create(Long userId, String title, String message, NotificationType type, LocalDateTime createdAt) {
+        return new Notification(new NotificationRestoreData(null, userId, title, message, type, false, createdAt));
+    }
+
     public void markAsRead() {
         this.read = true;
     }

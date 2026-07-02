@@ -22,8 +22,8 @@ import { useCurrentUserQuery } from '@/hooks/queries/auth/useCurrentUserQuery'
 import { useCatalogGradesQuery } from '@/hooks/queries/catalog/useCatalogOptionsQuery'
 import { useCurrentLearnerProfileQuery } from '@/hooks/queries/user/useCurrentLearnerProfileQuery'
 import { useUpdateCurrentUserProfileMutation } from '@/hooks/queries/user/useUpdateCurrentUserProfileMutation'
-import type { ErrorResponse } from '@/types/api/common'
-import type { LearnerGenderApiResponse, LearnerProfileApiResponse } from '@/types/api/user'
+import type { ErrorResponse, Gender } from '@/types/api/common'
+import type { LearnerProfileApiResponse } from '@/types/api/user'
 import type { CurrentUser, UserType } from '@/types/models/user'
 import { cn } from '@/utils/cn'
 
@@ -32,7 +32,7 @@ type ProfileFormValues = {
   email: string
   phone: string
   userType: UserType | ''
-  gender: LearnerGenderApiResponse | ''
+  gender: Gender | ''
   birthYear: string
   schoolName: string
   gradeId: string
@@ -72,7 +72,7 @@ const userTypeOptions: Array<{ label: string; value: UserType }> = [
   { label: 'Người đi làm', value: 'WORKING_ADULT' }
 ]
 
-const genderOptions: Array<{ label: string; value: LearnerGenderApiResponse }> = [
+const genderOptions: Array<{ label: string; value: Gender }> = [
   { label: 'Nam', value: 'MALE' },
   { label: 'Nữ', value: 'FEMALE' },
   { label: 'Khác', value: 'OTHER' }

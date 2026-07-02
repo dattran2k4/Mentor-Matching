@@ -6,11 +6,9 @@ import com.mentormatching.modules.mentor.domain.MeetingType;
 import com.mentormatching.shared.security.model.AuthenticatedPrincipal;
 
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
 public record UpdateCurrentMentorRequest(
-        @NotBlank(message = "Avatar URL is required") String avatarUrl,
         Gender gender,
         Long hometownCityId,
         Long currentDistrictId,
@@ -26,8 +24,8 @@ public record UpdateCurrentMentorRequest(
 ) {
 
     public UpdateCurrentMentorCommand toCommand(AuthenticatedPrincipal principal) {
-        return new UpdateCurrentMentorCommand(principal.getId(), avatarUrl, gender, hometownCityId,
-                currentDistrictId, headline, introduction, teachingStyle, experienceYears, currentPosition,
-                workplace, education, major, meetingType);
+        return new UpdateCurrentMentorCommand(principal.getId(), gender, hometownCityId, currentDistrictId,
+                headline, introduction, teachingStyle, experienceYears, currentPosition, workplace, education,
+                major, meetingType);
     }
 }

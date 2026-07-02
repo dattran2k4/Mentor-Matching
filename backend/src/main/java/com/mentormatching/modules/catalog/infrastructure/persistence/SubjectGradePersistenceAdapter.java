@@ -28,6 +28,11 @@ public class SubjectGradePersistenceAdapter implements SubjectGradeRepositoryPor
     }
 
     @Override
+    public List<SubjectGrade> findAll() {
+        return subjectGradeJpaRepository.findAll().stream().map(subjectGradePersistenceMapper::toDomain).toList();
+    }
+
+    @Override
     public Optional<SubjectGrade> findById(Long id) {
         return subjectGradeJpaRepository.findById(id).map(subjectGradePersistenceMapper::toDomain);
     }

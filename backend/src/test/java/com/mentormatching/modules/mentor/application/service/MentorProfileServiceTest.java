@@ -62,12 +62,12 @@ class MentorProfileServiceTest {
 
         when(mentorProfileRepositoryPort.findByUserId(20L)).thenReturn(Optional.of(mentorProfile));
         when(mentorProfileRepositoryPort.save(mentorProfile)).thenReturn(mentorProfile);
-        when(mentorReadRepositoryPort.findCurrentMentorByUserId(20L)).thenReturn(Optional.of(expected));
+        when(mentorReadRepositoryPort.findCurrentMentorByMentorId(10L)).thenReturn(Optional.of(expected));
 
         CurrentMentorDetails actual = mentorProfileService.updateCurrentMentor(command);
 
         assertEquals(expected, actual);
-        assertEquals("https://new.example.com/avatar.jpg", mentorProfile.getAvatarUrl());
+        assertEquals("https://old.example.com/avatar.jpg", mentorProfile.getAvatarUrl());
         assertEquals(Gender.MALE, mentorProfile.getGender());
         assertEquals(11L, mentorProfile.getHometownCityId());
         assertEquals(22L, mentorProfile.getCurrentDistrictId());

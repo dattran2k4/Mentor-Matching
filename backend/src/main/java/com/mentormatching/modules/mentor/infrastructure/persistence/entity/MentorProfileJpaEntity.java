@@ -42,6 +42,9 @@ public class MentorProfileJpaEntity {
     @Column(name = "avatar_url", nullable = false, columnDefinition = "TEXT")
     private String avatarUrl;
 
+    @Column(name = "avatar_media_id")
+    private Long avatarMediaId;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "gender")
     private Gender gender;

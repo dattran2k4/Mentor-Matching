@@ -21,8 +21,11 @@ type VerificationDraft = {
   fullName: string
   idCardNumber: string
   idCardFrontUrl: string
+  idCardFrontMediaId: number | null
   idCardBackUrl: string
+  idCardBackMediaId: number | null
   selfieWithIdUrl: string
+  selfieWithIdMediaId: number | null
 }
 
 function mapVerificationToDraft(
@@ -32,8 +35,11 @@ function mapVerificationToDraft(
     fullName: verification?.fullName ?? '',
     idCardNumber: verification?.idCardNumber ?? '',
     idCardFrontUrl: verification?.idCardFrontUrl ?? '',
+    idCardFrontMediaId: verification?.idCardFrontMediaId ?? null,
     idCardBackUrl: verification?.idCardBackUrl ?? '',
-    selfieWithIdUrl: verification?.selfieWithIdUrl ?? ''
+    idCardBackMediaId: verification?.idCardBackMediaId ?? null,
+    selfieWithIdUrl: verification?.selfieWithIdUrl ?? '',
+    selfieWithIdMediaId: verification?.selfieWithIdMediaId ?? null
   }
 }
 
@@ -42,8 +48,11 @@ function areVerificationDraftsEqual(left: VerificationDraft, right: Verification
     left.fullName === right.fullName &&
     left.idCardNumber === right.idCardNumber &&
     left.idCardFrontUrl === right.idCardFrontUrl &&
+    left.idCardFrontMediaId === right.idCardFrontMediaId &&
     left.idCardBackUrl === right.idCardBackUrl &&
-    left.selfieWithIdUrl === right.selfieWithIdUrl
+    left.idCardBackMediaId === right.idCardBackMediaId &&
+    left.selfieWithIdUrl === right.selfieWithIdUrl &&
+    left.selfieWithIdMediaId === right.selfieWithIdMediaId
   )
 }
 
@@ -207,9 +216,7 @@ export default function MentorVerificationPage() {
   const canSubmit = useMemo(
     () =>
       Boolean(
-        formValues.fullName.trim() &&
-        formValues.idCardFrontUrl.trim() &&
-        formValues.idCardBackUrl.trim()
+        formValues.fullName.trim() && formValues.idCardFrontMediaId && formValues.idCardBackMediaId
       ),
     [formValues]
   )
@@ -232,7 +239,10 @@ export default function MentorVerificationPage() {
     }
 
   const handleFileChange =
-    (field: 'idCardFrontUrl' | 'idCardBackUrl' | 'selfieWithIdUrl') =>
+    (
+      field: 'idCardFrontUrl' | 'idCardBackUrl' | 'selfieWithIdUrl',
+      mediaIdField: 'idCardFrontMediaId' | 'idCardBackMediaId' | 'selfieWithIdMediaId'
+    ) =>
     (event: ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0]
       if (!file) return
@@ -244,7 +254,8 @@ export default function MentorVerificationPage() {
         setSubmitErrorMessage(null)
         setDraftValues((currentValues) => ({
           ...(currentValues ?? sourceValues),
-          [field]: result
+          [field]: result,
+          [mediaIdField]: null
         }))
       }
       reader.readAsDataURL(file)
@@ -254,12 +265,17 @@ export default function MentorVerificationPage() {
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
+    if (!formValues.idCardFrontMediaId || !formValues.idCardBackMediaId) {
+      setSubmitErrorMessage('Vui lòng tải ảnh giấy tờ lên trước khi gửi xác thực.')
+      return
+    }
+
     const payload: UpsertCurrentMentorVerificationRequest = {
       fullName: formValues.fullName.trim(),
       idCardNumber: formValues.idCardNumber.trim() || null,
-      idCardFrontUrl: formValues.idCardFrontUrl.trim(),
-      idCardBackUrl: formValues.idCardBackUrl.trim(),
-      selfieWithIdUrl: formValues.selfieWithIdUrl.trim() || null
+      idCardFrontMediaId: formValues.idCardFrontMediaId,
+      idCardBackMediaId: formValues.idCardBackMediaId,
+      selfieWithIdMediaId: formValues.selfieWithIdMediaId
     }
 
     setSaveSuccessMessage(null)
@@ -352,21 +368,21 @@ export default function MentorVerificationPage() {
                 <VerificationUploadCard
                   hint={['Ảnh rõ nét, không lóa sáng', 'Ảnh cước mặt trước CCCD/hộ chiếu']}
                   inputId='verification-front'
-                  onFileChange={handleFileChange('idCardFrontUrl')}
+                  onFileChange={handleFileChange('idCardFrontUrl', 'idCardFrontMediaId')}
                   title='Mặt trước CCCD'
                   value={formValues.idCardFrontUrl}
                 />
                 <VerificationUploadCard
                   hint={['Ảnh rõ nét, không lóa sáng', 'Ảnh sau: Mặt sau/CCCD/hộ chiếu']}
                   inputId='verification-back'
-                  onFileChange={handleFileChange('idCardBackUrl')}
+                  onFileChange={handleFileChange('idCardBackUrl', 'idCardBackMediaId')}
                   title='Mặt sau CCCD'
                   value={formValues.idCardBackUrl}
                 />
                 <VerificationUploadCard
                   hint={['Ảnh rõ nét, không lóa sáng', 'Ảnh selfie cùng CCCD']}
                   inputId='verification-selfie'
-                  onFileChange={handleFileChange('selfieWithIdUrl')}
+                  onFileChange={handleFileChange('selfieWithIdUrl', 'selfieWithIdMediaId')}
                   title='Ảnh Selfie cùng CCCD'
                   value={formValues.selfieWithIdUrl}
                 />

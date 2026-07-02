@@ -64,6 +64,8 @@ const MentorCard = ({ mentor }: MentorCardProps) => {
   const meetingTypes = mentor.meetingTypes ?? []
   const nextAvailability = mentor.specificDateAvailability?.[0]
   const profileHref = path.mentorProfile(mentor.id)
+  const startingPriceLabel =
+    typeof mentor.startingPrice === 'number' ? `${formatPrice(mentor.startingPrice)}/giờ` : null
 
   return (
     <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.2 }} className='h-full'>
@@ -132,8 +134,10 @@ const MentorCard = ({ mentor }: MentorCardProps) => {
             />
             <QuickStat
               icon={<GraduationCap size={16} />}
-              label='Khóa học'
-              value={offerings.length ? `${offerings.length} đang mở` : 'Chưa mở'}
+              label={offerings.length ? 'Khóa học' : 'Học phí'}
+              value={
+                offerings.length ? `${offerings.length} đang mở` : startingPriceLabel || 'Chưa mở'
+              }
             />
             <QuickStat
               icon={<BriefcaseBusiness size={16} />}
@@ -174,7 +178,10 @@ const MentorCard = ({ mentor }: MentorCardProps) => {
               ))
             ) : (
               <div className='px-3 py-4 text-center'>
-                <p className='text-muted text-sm'>Chưa có khóa học đang mở</p>
+                <p className='text-ink text-sm font-bold'>
+                  {startingPriceLabel ? `Từ ${startingPriceLabel}` : 'Chưa có khóa học đang mở'}
+                </p>
+                <p className='text-muted mt-1 text-xs'>Xem hồ sơ để biết môn học phù hợp</p>
               </div>
             )}
           </div>

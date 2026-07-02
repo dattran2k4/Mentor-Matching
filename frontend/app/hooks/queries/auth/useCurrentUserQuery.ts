@@ -31,9 +31,10 @@ export function getCurrentUserQueryOptions() {
 
 export function useCurrentUserQuery() {
   const accessToken = useAuthStore((state) => state.accessToken)
+  const hasHydrated = useAuthStore((state) => state.hasHydrated)
 
   return useQuery({
     ...getCurrentUserQueryOptions(),
-    enabled: Boolean(accessToken)
+    enabled: hasHydrated && Boolean(accessToken)
   })
 }

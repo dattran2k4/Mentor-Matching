@@ -16,4 +16,8 @@ public interface ReviewRepositoryPort {
     List<Review> findByStudentUserId(Long studentUserId);
 
     List<Review> findByMentorId(Long mentorId);
+
+    com.mentormatching.shared.response.PageResponse<Review> findByMentorId(Long mentorId, int page, int size, String sortBy, String sortDir);
+
+    void delete(Review review);
 }
