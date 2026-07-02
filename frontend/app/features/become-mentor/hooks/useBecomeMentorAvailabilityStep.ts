@@ -28,6 +28,7 @@ type UseBecomeMentorAvailabilityStepParams = {
   onSubmitStep: () => void
 }
 
+/* Quản lý bước khai báo lịch rảnh của mentor. */
 export function useBecomeMentorAvailabilityStep({
   availabilities,
   onSubmitStep,
@@ -61,11 +62,13 @@ export function useBecomeMentorAvailabilityStep({
     }))
   }, [currentScheduleQuery.data, setFormState])
 
+  /* Đặt lại form tạo/chỉnh sửa lịch về trạng thái ban đầu. */
   const resetAvailabilityDraft = () => {
     setAvailabilityDraft(initialAvailabilityDraft)
     setEditingAvailabilityId(null)
   }
 
+  /* Tải lại lịch từ server và đồng bộ vào form chính. */
   const syncAvailabilitiesFromServer = async () => {
     const nextResult = await currentScheduleQuery.refetch()
 
@@ -79,6 +82,7 @@ export function useBecomeMentorAvailabilityStep({
     }))
   }
 
+  /* Lưu khung giờ hiện tại lên server sau khi kiểm tra dữ liệu bắt buộc. */
   const saveAvailability = async () => {
     const draft = {
       endTime: availabilityDraft.endTime,
@@ -109,6 +113,7 @@ export function useBecomeMentorAvailabilityStep({
     resetAvailabilityDraft()
   }
 
+  /* Đưa một khung giờ đã có vào form để chỉnh sửa. */
   const editAvailability = (availability: BecomeMentorAvailabilityWindow) => {
     setEditingAvailabilityId(availability.id)
     setAvailabilityDraft({
@@ -120,6 +125,7 @@ export function useBecomeMentorAvailabilityStep({
     })
   }
 
+  /* Xóa khung giờ trên server hoặc trong form nếu chưa được lưu. */
   const removeAvailability = async (availabilityId: string) => {
     const availability = availabilities.find((item) => item.id === availabilityId)
 
@@ -138,6 +144,7 @@ export function useBecomeMentorAvailabilityStep({
     }
   }
 
+  /* Cho qua bước tiếp theo khi danh sách lịch hợp lệ. */
   const submitAvailabilityStep = () => {
     if (stepValidation.success) {
       onSubmitStep()
@@ -158,6 +165,7 @@ export function useBecomeMentorAvailabilityStep({
     onEditAvailability: editAvailability,
     onRemoveAvailability: removeAvailability,
     onResetDraft: resetAvailabilityDraft,
+    /* Thử tải lại trạng thái onboarding và lịch hiện tại. */
     onRetry: () => {
       void onboardingStatusQuery.refetch()
       if (shouldFetchCurrentSchedule) {

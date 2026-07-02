@@ -14,7 +14,7 @@ import type {
   CurrentMentorVerificationApiResponse,
   GetAdminMentorVerificationsQueryParams,
   GetAdminMentorsQueryParams,
-  GetMentorsQueryParams,
+  MentorsQueryParams,
   MentorAchievementDetailApiResponse,
   MentorAvailabilityDetailApiResponse,
   MentorDetailApiResponse,
@@ -104,7 +104,7 @@ const defaultMentorApi = {
       .data,
 
   getMentors: async (
-    params?: GetMentorsQueryParams
+    params?: MentorsQueryParams
   ): Promise<ApiResponse<MentorListPageApiResponse>> =>
     (await http.get<ApiResponse<MentorListPageApiResponse>>(MENTOR_ENDPOINTS.mentors, { params }))
       .data,

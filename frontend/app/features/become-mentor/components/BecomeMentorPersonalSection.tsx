@@ -20,6 +20,7 @@ const genderOptions: AppSelectOption[] = [
 ]
 
 type BecomeMentorPersonalSectionProps = {
+  avatarErrorMessage?: string | null
   avatarPreviewUrl: string
   cityOptions: AppSelectOption[]
   control: Control<BecomeMentorProfileFormValues>
@@ -27,8 +28,6 @@ type BecomeMentorPersonalSectionProps = {
   districtOptions: AppSelectOption[]
   eyebrow?: string
   errors: FieldErrors<BecomeMentorProfileFormValues>
-  existingAvatarMediaId?: number | null
-  existingAvatarUrl?: string
   isCitiesLoading: boolean
   isDistrictsLoading: boolean
   onAvatarChange: (event: ChangeEvent<HTMLInputElement>) => void
@@ -37,6 +36,7 @@ type BecomeMentorPersonalSectionProps = {
 }
 
 export function BecomeMentorPersonalSection({
+  avatarErrorMessage,
   avatarPreviewUrl,
   cityOptions,
   control,
@@ -110,7 +110,7 @@ export function BecomeMentorPersonalSection({
               ) : (
                 <p className='mt-5 text-xs font-medium text-slate-500'>Nhấn vào ảnh để cập nhật</p>
               )}
-              <FieldError message={errors.avatarFile?.message} />
+              <FieldError message={avatarErrorMessage} />
             </div>
           </div>
 
@@ -223,7 +223,7 @@ function Field({ children }: { children: ReactNode }) {
   return <div className='space-y-2'>{children}</div>
 }
 
-function FieldError({ message }: { message?: string }) {
+function FieldError({ message }: { message?: string | null }) {
   if (!message) return null
 
   return <p className='text-sm font-medium text-red-500'>{message}</p>

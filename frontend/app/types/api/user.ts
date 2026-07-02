@@ -1,10 +1,9 @@
+import type { Gender } from '@/types/api/common'
 import type { UserStatus } from '@/types/models/user'
 
 export type UserRoleApiResponse = 'LEARNER' | 'MENTOR' | 'ADMIN' | 'MANAGER'
 
 export type UserTypeApiResponse = 'STUDENT' | 'PARENT' | 'UNIVERSITY_STUDENT' | 'WORKING_ADULT'
-
-export type LearnerGenderApiResponse = 'MALE' | 'FEMALE' | 'OTHER'
 
 export type CurrentUserApiResponse = {
   id: number
@@ -25,7 +24,7 @@ export type UpdateCurrentUserRequest = {
 export type LearnerProfileApiResponse = {
   id: number | null
   userId: number
-  gender: LearnerGenderApiResponse | null
+  gender: Gender | null
   birthYear: number | null
   schoolName: string | null
   gradeId: number | null
@@ -35,7 +34,7 @@ export type LearnerProfileApiResponse = {
 }
 
 export type UpdateCurrentLearnerProfileRequest = {
-  gender?: LearnerGenderApiResponse | null
+  gender?: Gender | null
   birthYear?: number | null
   schoolName?: string | null
   gradeId?: number | null

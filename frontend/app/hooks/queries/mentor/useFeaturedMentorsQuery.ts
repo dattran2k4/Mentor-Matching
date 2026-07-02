@@ -3,7 +3,7 @@ import { queryOptions, useQuery } from '@tanstack/react-query'
 import { QUERY_KEYS } from '@/constants/query-keys'
 import { mentorApi } from '@/services/mentor.api'
 import type {
-  GetMentorsQueryParams,
+  MentorsQueryParams,
   MentorAvailabilityDetailApiResponse,
   MentorDetailApiResponse,
   MentorListItemApiResponse,
@@ -20,7 +20,7 @@ export type FeaturedMentorApiBundle = {
 }
 
 export type FeaturedMentorsQueryParams = Pick<
-  GetMentorsQueryParams,
+  MentorsQueryParams,
   'page' | 'size' | 'sortBy' | 'sortDir'
 >
 

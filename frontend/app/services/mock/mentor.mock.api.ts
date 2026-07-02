@@ -13,11 +13,11 @@ import type {
   CurrentMentorVerificationApiResponse,
   GetAdminMentorVerificationsQueryParams,
   GetAdminMentorsQueryParams,
-  GetMentorsQueryParams,
+  MentorsQueryParams,
   MentorAchievementDetailApiResponse,
   MentorAvailabilityDetailApiResponse,
   MentorDetailApiResponse,
-  MentorMeetingTypeApiResponse,
+  MentorMeetingType,
   MentorOptionDetailApiResponse,
   MentorSubjectDetailApiResponse,
   MentorTraitsDetailApiResponse,
@@ -447,9 +447,9 @@ function normalizeAvailabilityPayload(
   }
 }
 
-function filterByMeetingType<T extends { meetingType: MentorMeetingTypeApiResponse | null }>(
+function filterByMeetingType<T extends { meetingType: MentorMeetingType | null }>(
   items: T[],
-  meetingType?: MentorMeetingTypeApiResponse
+  meetingType?: MentorMeetingType
 ) {
   if (!meetingType) return items
   return items.filter((item) => item.meetingType === meetingType)
@@ -574,7 +574,7 @@ export const mockMentorApi = {
   },
 
   async getMentors(
-    params?: GetMentorsQueryParams
+    params?: MentorsQueryParams
   ): Promise<ApiResponse<PageResponse<AdminMentorListItemApiResponse>>> {
     await delay()
 

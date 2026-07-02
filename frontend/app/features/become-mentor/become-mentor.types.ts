@@ -6,6 +6,12 @@ export type BecomeMentorAvailabilityMode = 'RECURRING' | 'SPECIFIC_DATE'
 
 export type BecomeMentorDocumentKey = 'idFront' | 'idBack' | 'selfieWithId'
 
+export type BecomeMentorDocumentValue = {
+  fileName: string
+  mediaId: number | null
+  previewUrl: string
+}
+
 export type BecomeMentorOffering = {
   id: string
   gradeLevel: string
@@ -48,7 +54,7 @@ export type BecomeMentorFormState = {
   availabilities: BecomeMentorAvailabilityWindow[]
   verificationFullName: string
   idCardNumber: string
-  documents: Record<BecomeMentorDocumentKey, string>
+  documents: Record<BecomeMentorDocumentKey, BecomeMentorDocumentValue>
 }
 
 export type BecomeMentorStep = {

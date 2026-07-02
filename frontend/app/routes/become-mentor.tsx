@@ -22,6 +22,7 @@ import type {
   BecomeMentorReadinessItem,
   BecomeMentorStep
 } from '@/features/become-mentor/become-mentor.types'
+import type { CurrentMentorVerificationApiResponse } from '@/types/api/mentor'
 
 const becomeMentorStepFormIds = {
   profile: 'become-mentor-profile-form',
@@ -76,14 +77,14 @@ function getReadinessItems(formState: BecomeMentorFormState): BecomeMentorReadin
       id: 'verification',
       label: 'Xác minh',
       helper:
-        formState.documents.idFront && formState.documents.idBack
+        formState.documents.idFront.mediaId && formState.documents.idBack.mediaId
           ? 'Đã chuẩn bị bộ giấy tờ cơ bản'
           : 'Còn thiếu giấy tờ để đội ngũ đối chiếu',
       done: Boolean(
         formState.verificationFullName &&
         formState.idCardNumber &&
-        formState.documents.idFront &&
-        formState.documents.idBack
+        formState.documents.idFront.mediaId &&
+        formState.documents.idBack.mediaId
       )
     }
   ]
@@ -178,8 +179,11 @@ export default function BecomeMentorPage() {
     setCurrentStepIndex(Math.max(0, Math.min(index, steps.length - 1)))
   }
 
-  const submitVerification = (values: BecomeMentorVerificationFormValues) => {
-    setFormState((current) => ({ ...current, ...values }))
+  const submitVerification = (
+    values: BecomeMentorVerificationFormValues,
+    verification: CurrentMentorVerificationApiResponse
+  ) => {
+    setFormState((current) => mapVerificationValuesToFormState(current, values, verification))
     goToStep(currentStepIndex + 1)
   }
 
@@ -233,6 +237,11 @@ export default function BecomeMentorPage() {
             documents={formState.documents}
             formId={becomeMentorStepFormIds.verification}
             idCardNumber={formState.idCardNumber}
+            onHydrate={(values, verification) => {
+              setFormState((current) =>
+                mapVerificationValuesToFormState(current, values, verification)
+              )
+            }}
             onSubmit={submitVerification}
             verificationFullName={formState.verificationFullName}
           />
@@ -286,4 +295,33 @@ export default function BecomeMentorPage() {
       </div>
     </div>
   )
+}
+
+function mapVerificationValuesToFormState(
+  current: BecomeMentorFormState,
+  values: BecomeMentorVerificationFormValues,
+  verification: CurrentMentorVerificationApiResponse
+): BecomeMentorFormState {
+  return {
+    ...current,
+    documents: {
+      idBack: {
+        fileName: values.documents.idBack.fileName,
+        mediaId: verification.idCardBackMediaId,
+        previewUrl: verification.idCardBackUrl ?? values.documents.idBack.previewUrl
+      },
+      idFront: {
+        fileName: values.documents.idFront.fileName,
+        mediaId: verification.idCardFrontMediaId,
+        previewUrl: verification.idCardFrontUrl ?? values.documents.idFront.previewUrl
+      },
+      selfieWithId: {
+        fileName: values.documents.selfieWithId.fileName,
+        mediaId: verification.selfieWithIdMediaId,
+        previewUrl: verification.selfieWithIdUrl ?? values.documents.selfieWithId.previewUrl
+      }
+    },
+    idCardNumber: values.idCardNumber,
+    verificationFullName: values.verificationFullName
+  }
 }

@@ -17,6 +17,7 @@ type UseBecomeMentorOfferingsStepParams = {
   setFormState: Dispatch<SetStateAction<BecomeMentorFormState>>
 }
 
+/* Quản lý danh sách môn dạy trong luồng đăng ký mentor. */
 export function useBecomeMentorOfferingsStep({
   offerings,
   setFormState
@@ -36,10 +37,12 @@ export function useBecomeMentorOfferingsStep({
     }))
   }, [currentProfileQuery.data, setFormState])
 
+  /* Thoát chế độ chỉnh sửa offering hiện tại. */
   const resetOfferingDraft = () => {
     setEditingOfferingId(null)
   }
 
+  /* Lưu môn học lên server và cập nhật danh sách trong form. */
   const saveOffering = async (values: BecomeMentorOfferingFormValues) => {
     const response = await upsertCurrentMentorSubjectMutation.mutateAsync(
       mapOfferingFormValuesToRequest(values, editingOffering?.mentorSubjectId ?? null)
@@ -55,10 +58,12 @@ export function useBecomeMentorOfferingsStep({
     setEditingOfferingId(null)
   }
 
+  /* Chọn một offering để nạp vào form chỉnh sửa. */
   const editOffering = (offering: BecomeMentorOffering) => {
     setEditingOfferingId(offering.id)
   }
 
+  /* Xóa offering trên server nếu đã lưu, rồi xóa khỏi form. */
   const removeOffering = async (offeringId: string) => {
     const offering = offerings.find((item) => item.id === offeringId)
 
@@ -86,6 +91,7 @@ export function useBecomeMentorOfferingsStep({
     onEditOffering: editOffering,
     onRemoveOffering: removeOffering,
     onResetDraft: resetOfferingDraft,
+    /* Thử tải lại hồ sơ mentor để đồng bộ offerings. */
     onRetry: () => {
       void currentProfileQuery.refetch()
     },

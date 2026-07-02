@@ -1,12 +1,8 @@
 import type { BecomeMentorProfileFormValues } from '@/features/become-mentor/schemas'
-import type {
-  CurrentMentorApiResponse,
-  MentorGenderApiResponse,
-  UpdateCurrentMentorRequest
-} from '@/types/api/mentor'
+import type { Gender } from '@/types/api/common'
+import type { CurrentMentorApiResponse, UpdateCurrentMentorRequest } from '@/types/api/mentor'
 
 export const emptyBecomeMentorProfileFormValues: BecomeMentorProfileFormValues = {
-  avatarFile: undefined,
   currentCityId: '',
   currentDistrictId: '',
   currentPosition: '',
@@ -24,7 +20,6 @@ export function mapCurrentMentorToBecomeMentorProfileFormValues(
   currentMentor: CurrentMentorApiResponse
 ): BecomeMentorProfileFormValues {
   return {
-    avatarFile: undefined,
     currentCityId: currentMentor.currentLocation.cityId
       ? String(currentMentor.currentLocation.cityId)
       : '',
@@ -51,7 +46,7 @@ export function mapBecomeMentorProfileFormValuesToRequest(
     currentDistrictId: toNullableNumber(values.currentDistrictId),
     currentPosition: toNullableString(values.currentPosition),
     experienceYears: toNullableNumber(values.experienceYears),
-    gender: values.gender ? (values.gender as MentorGenderApiResponse) : null,
+    gender: values.gender ? (values.gender as Gender) : null,
     headline: toNullableString(values.headline),
     hometownCityId: toNullableNumber(values.hometownCityId),
     introduction: toNullableString(values.introduction),

@@ -16,11 +16,11 @@ export function getCurrentMentorVerificationQueryOptions() {
   })
 }
 
-export function useCurrentMentorVerificationQuery() {
+export function useCurrentMentorVerificationQuery(enabled = true) {
   const accessToken = useAuthStore((state) => state.accessToken)
 
   return useQuery({
     ...getCurrentMentorVerificationQueryOptions(),
-    enabled: Boolean(accessToken)
+    enabled: Boolean(accessToken) && enabled
   })
 }

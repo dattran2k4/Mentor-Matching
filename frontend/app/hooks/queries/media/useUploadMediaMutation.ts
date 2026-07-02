@@ -26,6 +26,7 @@ type CloudinaryUploadResponse = {
   etag?: string
 }
 
+/* Tạo mutation upload media qua intent, upload lên provider và gọi api xác nhận backend. */
 export function useUploadMediaMutation() {
   return useMutation({
     mutationFn: async ({
@@ -64,6 +65,7 @@ export function useUploadMediaMutation() {
   })
 }
 
+/* Gửi file lên provider lưu trữ hoặc trả mock response khi dùng URL giả lập. */
 async function uploadToProvider(
   uploadUrl: string,
   {
@@ -97,6 +99,7 @@ async function uploadToProvider(
   return (await response.json()) as CloudinaryUploadResponse
 }
 
+/* Tạo phản hồi upload giả lập cho môi trường mock. */
 function buildMockUploadResponse(
   file: File,
   formFields: Record<string, string>
@@ -112,10 +115,12 @@ function buildMockUploadResponse(
   }
 }
 
+/* Kiểm tra upload URL có phải endpoint mock hay không. */
 function isMockUploadUrl(uploadUrl: string) {
   return uploadUrl.includes('/mock/')
 }
 
+/* Suy ra loại tài nguyên media từ MIME type của file. */
 function resolveMediaResourceType(file: File): MediaResourceTypeApi {
   if (file.type.startsWith('image/')) return 'IMAGE'
   if (file.type.startsWith('video/')) return 'VIDEO'

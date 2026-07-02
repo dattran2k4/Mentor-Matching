@@ -21,9 +21,21 @@ export const initialBecomeMentorFormState: BecomeMentorFormState = {
   verificationFullName: '',
   idCardNumber: '',
   documents: {
-    idFront: '',
-    idBack: '',
-    selfieWithId: ''
+    idFront: {
+      fileName: '',
+      mediaId: null,
+      previewUrl: ''
+    },
+    idBack: {
+      fileName: '',
+      mediaId: null,
+      previewUrl: ''
+    },
+    selfieWithId: {
+      fileName: '',
+      mediaId: null,
+      previewUrl: ''
+    }
   }
 }
 

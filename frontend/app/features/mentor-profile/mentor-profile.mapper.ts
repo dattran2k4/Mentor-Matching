@@ -4,7 +4,7 @@ import type {
   MentorAchievementTypeApiResponse,
   MentorApprovalStatusApiResponse,
   MentorDetailApiResponse,
-  MentorMeetingTypeApiResponse,
+  MentorMeetingType,
   MentorProficiencyLevelApiResponse,
   MentorTraitsDetailApiResponse,
   MentorVerificationStatusApiResponse
@@ -58,7 +58,7 @@ export type MentorProfileViewModel = {
   introduction: string
   subjects: string[]
   grades: string[]
-  meetingTypes: MentorMeetingTypeApiResponse[]
+  meetingTypes: MentorMeetingType[]
   availabilitySummary: string
   teachingStyle: string
   achievements: string[]
@@ -75,7 +75,7 @@ export function mapMentorProfileToViewModel(
 ): MentorProfileViewModel {
   const { achievements, detail, subjects, traits } = bundle
   const meetingTypes = unique(
-    [detail.meetingType].filter((value): value is MentorMeetingTypeApiResponse => Boolean(value))
+    [detail.meetingType].filter((value): value is MentorMeetingType => Boolean(value))
   )
   const offerings: MentorProfileOffering[] = subjects.map((item) => ({
     id: String(item.id),
@@ -140,7 +140,7 @@ export function mapMentorProfileToViewModel(
   }
 }
 
-export function formatMeetingTypeLabel(meetingType: MentorMeetingTypeApiResponse) {
+export function formatMeetingTypeLabel(meetingType: MentorMeetingType) {
   if (meetingType === 'ONLINE') return 'Online'
   if (meetingType === 'OFFLINE') return 'Offline'
 
@@ -224,7 +224,7 @@ function buildEducation(detail: MentorDetailApiResponse) {
 
 function buildAvailabilitySummary(
   detail: MentorDetailApiResponse,
-  meetingTypes: MentorMeetingTypeApiResponse[]
+  meetingTypes: MentorMeetingType[]
 ) {
   const locationLabel = [detail.currentLocation.districtName, detail.currentLocation.cityName]
     .filter(Boolean)
@@ -279,7 +279,7 @@ function dedupeExperience(items: MentorProfileExperienceItem[]) {
 }
 
 function toBookableMeetingType(
-  meetingType: MentorMeetingTypeApiResponse | null
+  meetingType: MentorMeetingType | null
 ): BookingMeetingTypeApiResponse | null {
   if (meetingType === 'ONLINE' || meetingType === 'OFFLINE') return meetingType
 
