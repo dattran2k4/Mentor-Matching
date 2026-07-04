@@ -490,7 +490,7 @@ export const mockMentorApi = {
     currentMentorState = {
       ...currentMentorState,
       ...payload,
-      approvalStatus: 'PENDING',
+      approvalStatus: 'DRAFT',
       updatedAt: new Date().toISOString()
     }
 

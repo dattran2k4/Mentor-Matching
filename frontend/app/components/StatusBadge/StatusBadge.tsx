@@ -54,6 +54,7 @@ const statusConfigMap: Record<
     REFUNDED: { label: 'Đã hoàn tiền', tone: 'info', icon: CheckCircle2 }
   },
   approval: {
+    DRAFT: { label: 'Bản nháp', tone: 'muted', icon: Clock },
     PENDING: { label: 'Chờ duyệt', tone: 'warning', icon: Clock },
     APPROVED: { label: 'Đã duyệt', tone: 'success', icon: CheckCircle2 },
     REJECTED: { label: 'Từ chối', tone: 'danger', icon: XCircle },

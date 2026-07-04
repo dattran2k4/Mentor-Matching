@@ -10,8 +10,10 @@ type BecomeMentorStickyBarProps = {
   currentStepFormId: string
   isFirstStep: boolean
   isLastStep: boolean
+  isReadyForFinalSubmit?: boolean
   isSubmitting?: boolean
   onBack: () => void
+  onFinalSubmit?: () => void
   totalCount: number
 }
 
@@ -22,8 +24,10 @@ export function BecomeMentorStickyBar({
   currentStepFormId,
   isFirstStep,
   isLastStep,
+  isReadyForFinalSubmit = false,
   isSubmitting = false,
   onBack,
+  onFinalSubmit,
   totalCount
 }: BecomeMentorStickyBarProps) {
   return (
@@ -38,10 +42,6 @@ export function BecomeMentorStickyBar({
               Bước {currentStepIndex + 1}/{totalCount}: {currentStepLabel}
             </span>
           </div>
-          <p className='text-sm leading-6 text-slate-600'>
-            Mỗi lần chuyển bước chỉ cần validate phần hiện tại, nên sau này nối API lưu nháp và gửi
-            duyệt sẽ dễ hơn.
-          </p>
         </div>
 
         <div className='flex flex-col gap-3 sm:flex-row sm:items-center'>
@@ -57,10 +57,11 @@ export function BecomeMentorStickyBar({
           ) : null}
           <Button
             className='rounded-2xl'
-            form={currentStepFormId}
+            form={isLastStep && isReadyForFinalSubmit ? undefined : currentStepFormId}
             isLoading={isSubmitting}
+            onClick={isLastStep && isReadyForFinalSubmit ? onFinalSubmit : undefined}
             size='lg'
-            type='submit'
+            type={isLastStep && isReadyForFinalSubmit ? 'button' : 'submit'}
           >
             {isLastStep ? 'Gửi duyệt hồ sơ' : 'Tiếp tục'}
             <ArrowRight size={16} />

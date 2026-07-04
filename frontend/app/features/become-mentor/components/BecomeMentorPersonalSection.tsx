@@ -32,6 +32,7 @@ type BecomeMentorPersonalSectionProps = {
   isDistrictsLoading: boolean
   onAvatarChange: (event: ChangeEvent<HTMLInputElement>) => void
   onCurrentCityChange: (cityId: string) => void
+  onCurrentDistrictChange: (districtId: string) => void
   register: UseFormRegister<BecomeMentorProfileFormValues>
 }
 
@@ -48,6 +49,7 @@ export function BecomeMentorPersonalSection({
   isDistrictsLoading,
   onAvatarChange,
   onCurrentCityChange,
+  onCurrentDistrictChange,
   register
 }: BecomeMentorPersonalSectionProps) {
   const [isAvatarActionOpen, setIsAvatarActionOpen] = useState(false)
@@ -58,12 +60,7 @@ export function BecomeMentorPersonalSection({
   }
 
   return (
-    <BecomeMentorSectionCard
-      description='Đặt nền thông tin cơ bản thật rõ ràng để đội ngũ admin và học viên hiểu bạn là ai, đang dạy ở đâu.'
-      eyebrow={eyebrow}
-      id='identity'
-      title='Thông tin cá nhân'
-    >
+    <BecomeMentorSectionCard eyebrow={eyebrow} id='identity' title='Thông tin cá nhân'>
       <div className='grid gap-6'>
         <div className='grid gap-5 lg:grid-cols-[13rem_minmax(0,1fr)]'>
           <div className='rounded-[2rem] border border-dashed border-slate-300 bg-gradient-to-b from-slate-50 to-white p-4'>
@@ -196,7 +193,7 @@ export function BecomeMentorPersonalSection({
                     <AppSelect
                       ariaLabel='Chọn quận hoặc huyện hiện tại'
                       disabled={!currentCityId || isDistrictsLoading}
-                      onValueChange={field.onChange}
+                      onValueChange={onCurrentDistrictChange}
                       options={districtOptions}
                       placeholder={
                         !currentCityId

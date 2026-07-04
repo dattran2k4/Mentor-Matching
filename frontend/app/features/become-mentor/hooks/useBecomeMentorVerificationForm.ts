@@ -27,7 +27,7 @@ type UseBecomeMentorVerificationFormParams = {
   onSubmit: (
     values: BecomeMentorVerificationFormValues,
     verification: CurrentMentorVerificationApiResponse
-  ) => void
+  ) => Promise<void> | void
   verificationFullName: string
 }
 
@@ -188,7 +188,7 @@ export function useBecomeMentorVerificationForm({
       const nextValues = mapCurrentMentorVerificationToFormValues(response.verification)
 
       form.reset(nextValues)
-      onSubmit(nextValues, response.verification)
+      await onSubmit(nextValues, response.verification)
     } catch (error) {
       setSubmitErrorMessage(getVerificationErrorMessage(error))
     }

@@ -55,7 +55,9 @@ export function BecomeMentorProfileStep({
       <div className='flex flex-wrap items-center justify-between gap-3 rounded-[24px] border border-slate-200 bg-white px-5 py-4 shadow-sm'>
         <div>
           <p className='text-sm font-semibold text-slate-900'>Trạng thái hồ sơ</p>
-          <p className='text-sm text-slate-500'>{profileStatus.description}</p>
+          {profileStatus.description ? (
+            <p className='text-sm text-slate-500'>{profileStatus.description}</p>
+          ) : null}
         </div>
         <Badge variant={profileStatus.variant}>{profileStatus.label}</Badge>
       </div>
@@ -69,7 +71,7 @@ export function BecomeMentorProfileStep({
 }
 
 function getProfileStatus(status: CurrentMentorOnboardingStatusApiResponse | undefined): {
-  description: string
+  description?: string
   label: string
   variant: BadgeProps['variant']
 } {
@@ -83,7 +85,6 @@ function getProfileStatus(status: CurrentMentorOnboardingStatusApiResponse | und
 
   if (!status.profileDetailsCompleted) {
     return {
-      description: 'Hồ sơ đã có bản nháp, bạn có thể cập nhật các thông tin còn thiếu.',
       label: 'Bản nháp',
       variant: 'info'
     }

@@ -1,17 +1,24 @@
 import type { BecomeMentorProfileFormValues } from '@/features/become-mentor/schemas'
 import type { Gender } from '@/types/api/common'
-import type { CurrentMentorApiResponse, UpdateCurrentMentorRequest } from '@/types/api/mentor'
+import type {
+  CurrentMentorApiResponse,
+  MentorMeetingType,
+  UpdateCurrentMentorRequest
+} from '@/types/api/mentor'
 
 export const emptyBecomeMentorProfileFormValues: BecomeMentorProfileFormValues = {
   currentCityId: '',
   currentDistrictId: '',
   currentPosition: '',
+  education: '',
   experienceYears: '',
   fullName: '',
   gender: '',
   headline: '',
   hometownCityId: '',
   introduction: '',
+  major: '',
+  meetingType: '',
   teachingStyle: '',
   workplace: ''
 }
@@ -27,6 +34,7 @@ export function mapCurrentMentorToBecomeMentorProfileFormValues(
       ? String(currentMentor.currentLocation.districtId)
       : '',
     currentPosition: currentMentor.currentPosition ?? '',
+    education: currentMentor.education ?? '',
     experienceYears:
       currentMentor.experienceYears === null ? '' : String(currentMentor.experienceYears),
     fullName: currentMentor.fullName ?? '',
@@ -34,6 +42,8 @@ export function mapCurrentMentorToBecomeMentorProfileFormValues(
     headline: currentMentor.headline ?? '',
     hometownCityId: currentMentor.hometown.cityId ? String(currentMentor.hometown.cityId) : '',
     introduction: currentMentor.introduction ?? '',
+    major: currentMentor.major ?? '',
+    meetingType: currentMentor.meetingType ?? '',
     teachingStyle: currentMentor.teachingStyle ?? '',
     workplace: currentMentor.workplace ?? ''
   }
@@ -45,11 +55,14 @@ export function mapBecomeMentorProfileFormValuesToRequest(
   return {
     currentDistrictId: toNullableNumber(values.currentDistrictId),
     currentPosition: toNullableString(values.currentPosition),
+    education: toNullableString(values.education),
     experienceYears: toNullableNumber(values.experienceYears),
     gender: values.gender ? (values.gender as Gender) : null,
     headline: toNullableString(values.headline),
     hometownCityId: toNullableNumber(values.hometownCityId),
     introduction: toNullableString(values.introduction),
+    major: toNullableString(values.major),
+    meetingType: values.meetingType ? (values.meetingType as MentorMeetingType) : null,
     teachingStyle: toNullableString(values.teachingStyle),
     workplace: toNullableString(values.workplace)
   }

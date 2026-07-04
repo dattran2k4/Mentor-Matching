@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 type BecomeMentorSectionCardProps = {
   id: string
   title: string
-  description: string
+  description?: string
   eyebrow?: string
   children: ReactNode
 }
@@ -30,7 +30,7 @@ export function BecomeMentorSectionCard({
         ) : null}
         <div className='space-y-1'>
           <CardTitle className='text-xl'>{title}</CardTitle>
-          <CardDescription>{description}</CardDescription>
+          {description ? <CardDescription>{description}</CardDescription> : null}
         </div>
       </CardHeader>
       <CardContent className='p-6'>{children}</CardContent>

@@ -2,7 +2,12 @@ import type { Gender, PageQueryParams, PageResponse } from '@/types/api/common'
 
 export type MentorMeetingType = 'ONLINE' | 'OFFLINE' | 'HYBRID'
 
-export type MentorApprovalStatusApiResponse = 'PENDING' | 'APPROVED' | 'REJECTED' | 'SUSPENDED'
+export type MentorApprovalStatusApiResponse =
+  | 'DRAFT'
+  | 'PENDING'
+  | 'APPROVED'
+  | 'REJECTED'
+  | 'SUSPENDED'
 
 export type MentorVerificationStatusApiResponse = 'UNVERIFIED' | 'PENDING' | 'VERIFIED' | 'REJECTED'
 

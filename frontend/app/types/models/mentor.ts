@@ -16,7 +16,7 @@ export interface Education {
   school: string
 }
 
-export type MentorApprovalStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'SUSPENDED'
+export type MentorApprovalStatus = 'DRAFT' | 'PENDING' | 'APPROVED' | 'REJECTED' | 'SUSPENDED'
 export type MentorVerificationStatus = 'UNVERIFIED' | 'PENDING' | 'VERIFIED' | 'REJECTED'
 export type MeetingType = 'ONLINE' | 'OFFLINE' | 'HYBRID'
 export type MentorOfferingProficiency = 'BASIC' | 'INTERMEDIATE' | 'ADVANCED' | 'EXPERT'
