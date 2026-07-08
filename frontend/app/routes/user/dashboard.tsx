@@ -1,13 +1,13 @@
 import { Link } from 'react-router'
 import {
   ArrowRight,
+  Bell,
   BookMarked,
   Calendar,
   CheckCircle2,
   ChevronRight,
   Clock3,
   CreditCard,
-  MessageSquare,
   ReceiptText,
   Sparkles,
   UserRound,
@@ -349,7 +349,7 @@ export default function UserDashboardPage() {
       return {
         title: 'Thông báo hệ thống',
         description: `Bạn đang có ${paymentDueBookings.length} booking chờ thanh toán. Hãy vào lịch học để giữ chỗ với mentor đúng hạn.`,
-        icon: MessageSquare,
+        icon: Bell,
         tone: 'warning' as const
       }
     }
@@ -387,7 +387,7 @@ export default function UserDashboardPage() {
     return {
       title: 'Thông báo hệ thống',
       description: 'Mọi thông tin quan trọng về lịch học và thanh toán sẽ được cập nhật tại đây.',
-      icon: MessageSquare,
+      icon: Bell,
       tone: 'info' as const
     }
   }, [

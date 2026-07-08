@@ -1,8 +1,6 @@
 import {
   Calendar,
-  Heart,
   LayoutDashboard,
-  MessageSquare,
   Settings,
   Users,
   UserCircle,
@@ -26,8 +24,6 @@ export type DashboardNavItem = {
 export const userNavItems: DashboardNavItem[] = [
   { label: 'Tổng quan', to: path.user.root, icon: LayoutDashboard, end: true },
   { label: 'Lịch học', to: path.user.bookings, icon: Calendar },
-  { label: 'Yêu thích', to: path.user.favorites, icon: Heart },
-  { label: 'Tin nhắn', to: path.user.messages, icon: MessageSquare },
   { label: 'Hồ sơ', to: path.user.profile, icon: UserCircle }
 ]
 

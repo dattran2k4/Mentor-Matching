@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { type ChangeEvent, type FormEvent, useState } from 'react'
+import { type ChangeEvent, type FormEvent, useEffect, useState } from 'react'
 import {
   BookOpenText,
   ClipboardList,
@@ -225,7 +225,7 @@ export default function UserProfilePage() {
 
   const [activeTab, setActiveTab] = useState<UserProfileTabKey>('account')
   const [draftFormValues, setDraftFormValues] = useState<ProfileFormValues | null>(null)
-  const [saveSuccessMessage, setSaveSuccessMessage] = useState<string | null>(null)
+  const [saveToastMessage, setSaveToastMessage] = useState<string | null>(null)
   const [submitErrorMessage, setSubmitErrorMessage] = useState<string | null>(null)
 
   const sourceFormValues =
@@ -270,7 +270,6 @@ export default function UserProfilePage() {
   const handleFieldChange =
     (field: keyof ProfileFormValues) =>
     (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setSaveSuccessMessage(null)
       setSubmitErrorMessage(null)
       setDraftFormValues((currentValues) => ({
         ...(currentValues ?? sourceFormValues),
@@ -279,7 +278,6 @@ export default function UserProfilePage() {
     }
 
   const handleSelectChange = (field: keyof ProfileFormValues) => (value: string) => {
-    setSaveSuccessMessage(null)
     setSubmitErrorMessage(null)
     setDraftFormValues((currentValues) => ({
       ...(currentValues ?? sourceFormValues),
@@ -289,7 +287,7 @@ export default function UserProfilePage() {
 
   const handleRetry = () => {
     setDraftFormValues(null)
-    setSaveSuccessMessage(null)
+    setSaveToastMessage(null)
     setSubmitErrorMessage(null)
     void refetchCurrentUser()
     void refetchLearnerProfile()
@@ -301,7 +299,7 @@ export default function UserProfilePage() {
 
     if (!currentUser) return
 
-    setSaveSuccessMessage(null)
+    setSaveToastMessage(null)
     setSubmitErrorMessage(null)
 
     if (!formValues.userType) {
@@ -336,7 +334,7 @@ export default function UserProfilePage() {
           message
         }) => {
           setDraftFormValues(mapProfileToFormValues(updatedCurrentUser, updatedLearnerProfile))
-          setSaveSuccessMessage(message || 'Hồ sơ đã được cập nhật thành công.')
+          setSaveToastMessage(message || 'Hồ sơ đã được cập nhật thành công.')
         },
         onError: (error) => {
           setSubmitErrorMessage(getProfileSaveErrorMessage(error))
@@ -344,6 +342,16 @@ export default function UserProfilePage() {
       }
     )
   }
+
+  useEffect(() => {
+    if (!saveToastMessage) return
+
+    const timeoutId = window.setTimeout(() => {
+      setSaveToastMessage(null)
+    }, 3500)
+
+    return () => window.clearTimeout(timeoutId)
+  }, [saveToastMessage])
 
   if (isPageLoading) {
     return (
@@ -380,6 +388,16 @@ export default function UserProfilePage() {
       description='Giữ hồ sơ học viên rõ ràng để mentor hiểu nhanh bối cảnh học tập và mục tiêu hiện tại của bạn.'
       title='Hồ sơ học viên'
     >
+      {saveToastMessage ? (
+        <div
+          role='status'
+          aria-live='polite'
+          className='fixed top-5 right-5 z-50 rounded-2xl border border-emerald-200 bg-white px-4 py-3 text-sm font-medium text-emerald-700 shadow-lg shadow-emerald-900/10'
+        >
+          {saveToastMessage}
+        </div>
+      ) : null}
+
       <div className='grid gap-6 xl:grid-cols-[1.55fr_0.75fr]'>
         <div className='space-y-6'>
           <Card className='rounded-[26px] border-slate-200 shadow-none'>
@@ -661,7 +679,7 @@ export default function UserProfilePage() {
                   variant='outline'
                   onClick={() => {
                     setDraftFormValues(null)
-                    setSaveSuccessMessage(null)
+                    setSaveToastMessage(null)
                     setSubmitErrorMessage(null)
                   }}
                 >
@@ -705,38 +723,6 @@ export default function UserProfilePage() {
                   </div>
                 ))}
               </div>
-              {saveSuccessMessage ? (
-                <div className='rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700'>
-                  {saveSuccessMessage}
-                </div>
-              ) : null}
-            </CardContent>
-          </Card>
-
-          <Card className='rounded-[26px] border-slate-200 shadow-none'>
-            <CardContent className='space-y-4 p-6'>
-              <div className='flex items-start gap-3'>
-                <div className='bg-primary/10 text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl'>
-                  <ClipboardList size={18} />
-                </div>
-                <div className='space-y-1'>
-                  <p className='text-ink font-semibold'>Mẹo hoàn thiện hồ sơ</p>
-                  <p className='text-sm leading-relaxed text-slate-600'>
-                    Hồ sơ học viên càng rõ về lớp học và mục tiêu thì mentor càng dễ nhận đúng
-                    booking và chuẩn bị sát nhu cầu.
-                  </p>
-                </div>
-              </div>
-              <div className='space-y-2 rounded-2xl bg-slate-50 p-4 text-sm text-slate-700'>
-                <p>
-                  Email đang được giữ từ tài khoản đăng nhập nên không chỉnh trực tiếp ở màn này.
-                </p>
-                <p>Lớp hiện tại lấy từ catalog để lưu đúng `gradeId` mà backend đang dùng.</p>
-                <p>
-                  Phần mục tiêu học tập là tín hiệu quan trọng nhất để mentor hiểu bạn cần gì trước
-                  khi vào buổi đầu.
-                </p>
-              </div>
             </CardContent>
           </Card>
 
@@ -763,14 +749,6 @@ export default function UserProfilePage() {
                   <Badge variant='success'>{formatGradeLabel(selectedGrade.name)}</Badge>
                 ) : null}
               </div>
-            </CardContent>
-          </Card>
-
-          <Card className='rounded-[22px] border-slate-200 bg-slate-50 shadow-none'>
-            <CardContent className='p-4 text-sm text-slate-600'>
-              Màn này đang dùng dữ liệu thật từ `users/me`, `users/me/learner-profile` và catalog
-              grades. Layout đã được làm lại theo cùng ngôn ngữ UI với hồ sơ mentor để trải nghiệm
-              nhất quán hơn.
             </CardContent>
           </Card>
         </aside>

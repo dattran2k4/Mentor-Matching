@@ -16,8 +16,6 @@ export default [
     layout('layouts/user-layout.tsx', [
       index('routes/user/dashboard.tsx'),
       route('bookings', 'routes/user/bookings.tsx'),
-      route('favorites', 'routes/user/favorites.tsx'),
-      route('messages', 'routes/user/messages.tsx'),
       route('profile', 'routes/user/profile.tsx')
     ])
   ]),

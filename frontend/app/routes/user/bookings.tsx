@@ -5,7 +5,6 @@ import {
   Clock,
   ExternalLink,
   MapPin,
-  MessageSquare,
   Search,
   UserRound,
   Video,
@@ -546,17 +545,6 @@ export default function UserBookingsPage() {
                           >
                             <UserRound aria-hidden='true' size={15} />
                             Hồ sơ mentor
-                          </Link>
-                          <Link
-                            className={buttonVariants({
-                              className: 'w-full',
-                              size: 'default',
-                              variant: 'ghost'
-                            })}
-                            to={path.user.messages}
-                          >
-                            <MessageSquare aria-hidden='true' size={15} />
-                            Nhắn tin mentor
                           </Link>
                         </div>
 
