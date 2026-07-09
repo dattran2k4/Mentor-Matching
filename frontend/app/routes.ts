@@ -39,6 +39,7 @@ export default [
       index('routes/admin/dashboard.tsx'),
       route('users', 'routes/admin/users.tsx'),
       route('mentors', 'routes/admin/mentors.tsx'),
+      route('catalog', 'routes/admin/catalog.tsx'),
       route('reports', 'routes/admin/reports.tsx'),
       route('settings', 'routes/admin/settings.tsx')
     ])

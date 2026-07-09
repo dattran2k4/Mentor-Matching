@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react'
-import { Navigate, Outlet, useLocation } from 'react-router'
+import { useEffect } from 'react'
+import { Outlet, useLocation, useNavigate } from 'react-router'
 
 import { path } from '@/config/path'
 import type { Role } from '@/constants/roles'
@@ -14,12 +15,19 @@ type RoleGuardProps = {
 export function RoleGuard({ role, children }: RoleGuardProps) {
   const accessToken = useAuthStore((state) => state.accessToken)
   const location = useLocation()
+  const navigate = useNavigate()
   const { data: user, isLoading, isError } = useCurrentUserQuery()
 
-  if (!accessToken) {
-    const redirectTo = encodeURIComponent(`${location.pathname}${location.search}`)
-    return <Navigate to={`${path.login}?redirectTo=${redirectTo}`} replace />
-  }
+  useEffect(() => {
+    if (!accessToken) {
+      const redirectTo = encodeURIComponent(`${location.pathname}${location.search}`)
+      navigate(`${path.login}?redirectTo=${redirectTo}`, { replace: true })
+    } else if (!isLoading && (isError || !user?.roles.includes(role))) {
+      navigate(path.forbidden, { replace: true })
+    }
+  }, [accessToken, isLoading, isError, user, role, location, navigate])
+
+  if (!accessToken) return null
 
   if (isLoading) {
     return (
@@ -30,7 +38,7 @@ export function RoleGuard({ role, children }: RoleGuardProps) {
   }
 
   if (isError || !user?.roles.includes(role)) {
-    return <Navigate to={path.forbidden} replace />
+    return null
   }
 
   return children ?? <Outlet />

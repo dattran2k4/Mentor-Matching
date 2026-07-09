@@ -34,3 +34,7 @@ dist/
 
 # Private Codex skills
 codex-skills/
+
+
+# Local planning documents
+/task/

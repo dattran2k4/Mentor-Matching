@@ -1,4 +1,5 @@
-import { Navigate, Outlet, useSearchParams } from 'react-router'
+import { useEffect } from 'react'
+import { Outlet, useSearchParams, useNavigate } from 'react-router'
 
 import { path } from '@/config/path'
 import { useCurrentUserQuery } from '@/hooks/queries/auth/useCurrentUserQuery'
@@ -9,13 +10,22 @@ export default function GuestLayout() {
   const accessToken = useAuthStore((state) => state.accessToken)
   const [searchParams] = useSearchParams()
   const { data: user, isLoading } = useCurrentUserQuery()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (accessToken && !isLoading) {
+      const redirectTo = searchParams.get('redirectTo')
+      if (redirectTo) {
+        navigate(redirectTo, { replace: true })
+      } else if (user) {
+        navigate(getDashboardPath(user.roles), { replace: true })
+      } else {
+        navigate(path.discover, { replace: true })
+      }
+    }
+  }, [accessToken, isLoading, user, searchParams, navigate])
 
   if (accessToken) {
-    const redirectTo = searchParams.get('redirectTo')
-    if (redirectTo) {
-      return <Navigate to={redirectTo} replace />
-    }
-
     if (isLoading) {
       return (
         <div className='flex min-h-[40vh] items-center justify-center'>
@@ -23,12 +33,7 @@ export default function GuestLayout() {
         </div>
       )
     }
-
-    if (user) {
-      return <Navigate to={getDashboardPath(user.roles)} replace />
-    }
-
-    return <Navigate to={path.discover} replace />
+    return null
   }
 
   return <Outlet />

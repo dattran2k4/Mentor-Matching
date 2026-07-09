@@ -44,6 +44,7 @@ export const adminNavItems: DashboardNavItem[] = [
   { label: 'Tổng quan', to: path.admin.root, icon: LayoutDashboard, end: true },
   { label: 'Người dùng', to: path.admin.users, icon: Users },
   { label: 'Mentor', to: path.admin.mentors, icon: Shield },
+  { label: 'Danh mục', to: path.admin.catalog, icon: BookOpen },
   { label: 'Báo cáo', to: path.admin.reports, icon: BarChart3 },
   { label: 'Cài đặt', to: path.admin.settings, icon: Settings }
 ]

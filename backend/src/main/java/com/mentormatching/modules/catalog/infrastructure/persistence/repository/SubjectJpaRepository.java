@@ -9,4 +9,6 @@ import com.mentormatching.modules.catalog.infrastructure.persistence.entity.Subj
 public interface SubjectJpaRepository extends JpaRepository<SubjectJpaEntity, Long> {
 
     List<SubjectJpaEntity> findByCategoryId(Long categoryId);
+
+    boolean existsByName(String name);
 }

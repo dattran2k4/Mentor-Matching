@@ -24,3 +24,15 @@ export type CatalogOptionsApiResponse = {
   subjects: CatalogSubjectApiResponse[]
   grades: CatalogGradeApiResponse[]
 }
+
+export type CreateSubjectRequest = {
+  categoryId: number
+  name: string
+  description?: string
+}
+
+export type UpdateSubjectRequest = {
+  categoryId: number
+  name: string
+  description?: string
+}
