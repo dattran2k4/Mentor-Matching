@@ -15,7 +15,7 @@ export function useMentorReviewsQuery(
       const response = await reviewApi.getMentorReviews(mentorId, {
         ...params,
         page: pageParam as number
-      })
+      } as PageQueryParams)
       return response.data
     },
     initialPageParam: 1,

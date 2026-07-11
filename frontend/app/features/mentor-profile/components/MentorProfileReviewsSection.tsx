@@ -16,7 +16,7 @@ export function MentorProfileReviewsSection({ mentor }: MentorProfileReviewsSect
   const mentorId = mentor.mentorId
 
   const summaryQuery = useMentorRatingSummaryQuery(mentorId)
-  const reviewsQuery = useMentorReviewsQuery(mentorId, { size: 5, sortBy: 'createdAt', sortDir: 'desc' })
+  const reviewsQuery = useMentorReviewsQuery(mentorId, { size: 5, sortBy: 'createdAt', sortDir: 'desc' } as any)
 
   const isLoading = summaryQuery.isLoading || reviewsQuery.isLoading
   const hasReviews = summaryQuery.data && summaryQuery.data.totalReviews > 0

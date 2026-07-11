@@ -7,6 +7,7 @@ import {
   ExternalLink,
   MapPin,
   Search,
+  Star,
   UserRound,
   Video,
   Wallet,
@@ -22,11 +23,14 @@ import { Badge } from '@/components/ui/badge'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { SuccessModal } from '@/components/ui/success-modal'
 import { path } from '@/config/path'
 import { BOOKING_STATUS_CONFIG, LEARNER_BOOKING_STATUS_FILTERS } from '@/constants/booking-status'
 import { useCurrentUserBookingsQuery } from '@/hooks/queries/booking/useCurrentUserBookingsQuery'
+import { useMyReviewsQuery } from '@/hooks/queries/review/useMyReviewsQuery'
 import { useCreatePaymentMutation } from '@/hooks/queries/payment/useCreatePaymentMutation'
 import { useCreateReviewMutation } from '@/hooks/mutations/review/useCreateReviewMutation'
+import { useUpdateReviewMutation } from '@/hooks/mutations/review/useUpdateReviewMutation'
 import { ReviewFormModal, type ReviewFormData } from '@/features/review/components/ReviewFormModal'
 import type { BookingApiResponse, GetMyBookingsQueryParams } from '@/types/api/booking'
 import type { ErrorResponse } from '@/types/api/common'
@@ -71,6 +75,15 @@ function getPaymentErrorMessage(error: unknown) {
   }
 
   return 'Không thể bắt đầu thanh toán lúc này.'
+}
+
+function getReviewErrorMessage(error: unknown) {
+  if (axios.isAxiosError<ErrorResponse>(error)) {
+    if (!error.response) return 'Không thể kết nối với máy chủ.'
+    return error.response.data?.message || 'Không thể gửi đánh giá lúc này.'
+  }
+
+  return 'Không thể gửi đánh giá lúc này.'
 }
 
 function getMeetingLabel(booking: BookingApiResponse) {
@@ -208,8 +221,10 @@ export default function UserBookingsPage() {
     [activeFilter]
   )
   const bookingsQuery = useCurrentUserBookingsQuery(bookingQueryParams)
+  const myReviewsQuery = useMyReviewsQuery()
   const createPaymentMutation = useCreatePaymentMutation()
   const createReviewMutation = useCreateReviewMutation()
+  const updateReviewMutation = useUpdateReviewMutation()
   const [searchQuery, setSearchQuery] = useState('')
   const [activePaymentBookingId, setActivePaymentBookingId] = useState<number | null>(null)
   const [activeReviewBooking, setActiveReviewBooking] = useState<BookingApiResponse | null>(null)
@@ -217,6 +232,8 @@ export default function UserBookingsPage() {
   const [paymentFeedbackByBookingId, setPaymentFeedbackByBookingId] = useState<
     Record<number, PaymentFeedback>
   >({})
+  const [successModalMessage, setSuccessModalMessage] = useState<string | null>(null)
+  const [reviewSubmitError, setReviewSubmitError] = useState<string | null>(null)
   const createdBookingIdParam = searchParams.get('createdBookingId')
   const createdBookingId = createdBookingIdParam ? Number(createdBookingIdParam) : null
   const shouldShowCreatedBanner = searchParams.get('bookingCreated') === '1'
@@ -229,6 +246,16 @@ export default function UserBookingsPage() {
         : null,
     [bookings, createdBookingId]
   )
+
+  const reviewByBookingId = useMemo(() => {
+    const map: Record<number, any> = {}
+    if (myReviewsQuery.data) {
+      myReviewsQuery.data.forEach((review) => {
+        map[review.bookingId] = review
+      })
+    }
+    return map
+  }, [myReviewsQuery.data])
 
   const filteredBookings = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase()
@@ -294,25 +321,55 @@ export default function UserBookingsPage() {
     )
   }
 
-  const handleCreateReview = (data: ReviewFormData) => {
-    if (!activeReviewBooking) return
+  const activeReview = activeReviewBooking ? reviewByBookingId[activeReviewBooking.id] : null
+  const isReviewExpired = activeReview
+    ? new Date(activeReview.createdAt).getTime() + 30 * 24 * 60 * 60 * 1000 < Date.now()
+    : false
 
-    createReviewMutation.mutate(
-      {
-        bookingId: activeReviewBooking.id,
-        rating: data.rating,
-        comment: data.comment
-      },
-      {
-        onSuccess: () => {
-          setActiveReviewBooking(null)
-          alert('Gửi đánh giá thành công!')
+  const handleReviewSubmit = (data: ReviewFormData) => {
+    if (!activeReviewBooking) return
+    setReviewSubmitError(null)
+
+    if (activeReview) {
+      updateReviewMutation.mutate(
+        {
+          id: activeReview.id,
+          payload: { rating: data.rating, comment: data.comment }
         },
-        onError: (error) => {
-          alert(getPaymentErrorMessage(error))
+        {
+          onSuccess: () => {
+            setActiveReviewBooking(null)
+            setTimeout(() => {
+              setSuccessModalMessage('Cập nhật đánh giá thành công!')
+            }, 150)
+            void myReviewsQuery.refetch()
+          },
+          onError: (error) => {
+            setReviewSubmitError(getReviewErrorMessage(error))
+          }
         }
-      }
-    )
+      )
+    } else {
+      createReviewMutation.mutate(
+        {
+          bookingId: activeReviewBooking.id,
+          rating: data.rating,
+          comment: data.comment
+        },
+        {
+          onSuccess: () => {
+            setActiveReviewBooking(null)
+            setTimeout(() => {
+              setSuccessModalMessage('Gửi đánh giá thành công!')
+            }, 150)
+            void myReviewsQuery.refetch()
+          },
+          onError: (error) => {
+            setReviewSubmitError(getReviewErrorMessage(error))
+          }
+        }
+      )
+    }
   }
 
   if (bookingsQuery.isLoading && !bookingsQuery.data) {
@@ -426,7 +483,9 @@ export default function UserBookingsPage() {
                 booking.status === 'CONFIRMED' &&
                 booking.meetingType === 'ONLINE' &&
                 Boolean(booking.meetingLink?.trim())
-              const canReview = booking.status === 'COMPLETED'
+              const hasReview = !!reviewByBookingId[booking.id]
+              const canReview = booking.status === 'COMPLETED' && !hasReview
+              const hasReviewed = booking.status === 'COMPLETED' && hasReview
               const shouldFindAnotherMentor =
                 booking.status === 'CANCELLED' || booking.status === 'REJECTED'
 
@@ -553,11 +612,27 @@ export default function UserBookingsPage() {
                           ) : canReview ? (
                             <Button
                               className='w-full'
-                              onClick={() => setActiveReviewBooking(booking)}
+                              onClick={() => {
+                                setReviewSubmitError(null)
+                                setActiveReviewBooking(booking)
+                              }}
                               size='lg'
                             >
                               <Star aria-hidden='true' size={16} />
                               Viết đánh giá
+                            </Button>
+                          ) : hasReviewed ? (
+                            <Button
+                              className='w-full'
+                              variant='outline'
+                              onClick={() => {
+                                setReviewSubmitError(null)
+                                setActiveReviewBooking(booking)
+                              }}
+                              size='lg'
+                            >
+                              <Star className='text-amber-400 fill-amber-400' aria-hidden='true' size={16} />
+                              Đã đánh giá
                             </Button>
                           ) : shouldFindAnotherMentor ? (
                             <Link
@@ -618,9 +693,18 @@ export default function UserBookingsPage() {
       <ReviewFormModal
         open={!!activeReviewBooking}
         onOpenChange={(open) => !open && setActiveReviewBooking(null)}
-        onSubmit={handleCreateReview}
-        isSubmitting={createReviewMutation.isPending}
+        initialData={activeReview ? { rating: activeReview.rating, comment: activeReview.comment || '' } : undefined}
+        onSubmit={handleReviewSubmit}
+        isSubmitting={createReviewMutation.isPending || updateReviewMutation.isPending}
         title={activeReviewBooking ? `Đánh giá mentor ${activeReviewBooking.mentorName}` : 'Viết đánh giá'}
+        isExpired={isReviewExpired}
+        submitError={reviewSubmitError}
+      />
+
+      <SuccessModal
+        open={!!successModalMessage}
+        onOpenChange={(open) => !open && setSuccessModalMessage(null)}
+        title={successModalMessage || ''}
       />
     </DashboardPage>
   )
