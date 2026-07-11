@@ -31,6 +31,7 @@ import { useMyReviewsQuery } from '@/hooks/queries/review/useMyReviewsQuery'
 import { useCreatePaymentMutation } from '@/hooks/queries/payment/useCreatePaymentMutation'
 import { useCreateReviewMutation } from '@/hooks/mutations/review/useCreateReviewMutation'
 import { useUpdateReviewMutation } from '@/hooks/mutations/review/useUpdateReviewMutation'
+import { useDeleteReviewMutation } from '@/hooks/mutations/review/useDeleteReviewMutation'
 import { ReviewFormModal, type ReviewFormData } from '@/features/review/components/ReviewFormModal'
 import type { BookingApiResponse, GetMyBookingsQueryParams } from '@/types/api/booking'
 import type { ErrorResponse } from '@/types/api/common'
@@ -225,6 +226,7 @@ export default function UserBookingsPage() {
   const createPaymentMutation = useCreatePaymentMutation()
   const createReviewMutation = useCreateReviewMutation()
   const updateReviewMutation = useUpdateReviewMutation()
+  const deleteReviewMutation = useDeleteReviewMutation()
   const [searchQuery, setSearchQuery] = useState('')
   const [activePaymentBookingId, setActivePaymentBookingId] = useState<number | null>(null)
   const [activeReviewBooking, setActiveReviewBooking] = useState<BookingApiResponse | null>(null)
@@ -370,6 +372,24 @@ export default function UserBookingsPage() {
         }
       )
     }
+  }
+
+  const handleDeleteReview = () => {
+    if (!activeReviewBooking || !activeReview) return
+    setReviewSubmitError(null)
+
+    deleteReviewMutation.mutate(activeReview.id, {
+      onSuccess: () => {
+        setActiveReviewBooking(null)
+        setTimeout(() => {
+          setSuccessModalMessage('Xóa đánh giá thành công!')
+        }, 150)
+        void myReviewsQuery.refetch()
+      },
+      onError: (error) => {
+        setReviewSubmitError(getReviewErrorMessage(error))
+      }
+    })
   }
 
   if (bookingsQuery.isLoading && !bookingsQuery.data) {
@@ -699,6 +719,8 @@ export default function UserBookingsPage() {
         title={activeReviewBooking ? `Đánh giá mentor ${activeReviewBooking.mentorName}` : 'Viết đánh giá'}
         isExpired={isReviewExpired}
         submitError={reviewSubmitError}
+        onDelete={activeReview ? handleDeleteReview : undefined}
+        isDeleting={deleteReviewMutation.isPending}
       />
 
       <SuccessModal

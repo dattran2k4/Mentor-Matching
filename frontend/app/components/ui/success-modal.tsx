@@ -13,7 +13,7 @@ export function SuccessModal({ open, onOpenChange, title, description }: Success
   if (typeof document === 'undefined' || !open) return null
 
   return createPortal(
-    <div className='fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm'>
+    <div className='fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/60 p-4'>
       <div className='relative w-full max-w-[400px] overflow-hidden rounded-[24px] border border-slate-200 bg-white p-6 shadow-[0_28px_90px_rgba(15,23,42,0.22)] text-center flex flex-col items-center animate-in fade-in zoom-in duration-200'>
         <button
           aria-label='Đóng'

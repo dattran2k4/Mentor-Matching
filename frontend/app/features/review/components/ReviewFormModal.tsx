@@ -7,6 +7,7 @@ import { z } from 'zod'
 
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
+import { ConfirmModal } from '@/components/ui/confirm-modal'
 
 const reviewSchema = z.object({
   rating: z.number().min(1, 'Vui lòng chọn ít nhất 1 sao').max(5, 'Đánh giá tối đa 5 sao'),
@@ -24,6 +25,8 @@ type ReviewFormModalProps = {
   title?: string
   isExpired?: boolean
   submitError?: string | null
+  onDelete?: () => void
+  isDeleting?: boolean
 }
 
 export function ReviewFormModal({
@@ -34,9 +37,12 @@ export function ReviewFormModal({
   isSubmitting,
   title = 'Viết đánh giá',
   isExpired,
-  submitError
+  submitError,
+  onDelete,
+  isDeleting
 }: ReviewFormModalProps) {
   const [hoveredStar, setHoveredStar] = useState<number>(0)
+  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false)
 
   const {
     control,
@@ -62,7 +68,7 @@ export function ReviewFormModal({
   if (typeof document === 'undefined' || !open) return null
 
   return createPortal(
-    <div className='fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/45 p-4 backdrop-blur-sm md:p-6'>
+    <div className='fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/60 p-4 md:p-6'>
       <div className='max-h-[calc(100vh-32px)] w-full max-w-[600px] overflow-hidden rounded-[24px] border border-slate-200 bg-white shadow-[0_28px_90px_rgba(15,23,42,0.22)] animate-in fade-in zoom-in-95 duration-200 md:max-h-[calc(100vh-56px)]'>
         <div className='flex items-center justify-between gap-4 border-b border-slate-200 px-5 py-4 md:px-7 md:py-5'>
           <h3 className='text-ink text-[1.5rem] font-bold tracking-tight md:text-[1.7rem]'>
@@ -145,11 +151,24 @@ export function ReviewFormModal({
           </div>
 
           <div className='flex flex-wrap items-center justify-end gap-3 border-t border-slate-200 bg-slate-50 px-5 py-4 md:px-7 md:py-5'>
-            {submitError && (
-              <p className='mr-auto text-sm font-medium text-red-600'>
-                {submitError}
-              </p>
-            )}
+            <div className='mr-auto flex items-center gap-3'>
+              {onDelete && (
+                <Button
+                  type='button'
+                  variant='ghost'
+                  className='h-11 rounded-2xl px-4 text-base text-red-600 hover:bg-red-50 hover:text-red-700'
+                  disabled={isSubmitting || isDeleting}
+                  onClick={() => setIsConfirmDeleteOpen(true)}
+                >
+                  {isDeleting ? 'Đang xóa...' : 'Xóa'}
+                </Button>
+              )}
+              {submitError && (
+                <p className='text-sm font-medium text-red-600'>
+                  {submitError}
+                </p>
+              )}
+            </div>
             <Button
               type='button'
               className='h-11 min-w-[120px] rounded-2xl px-6 text-base'
@@ -171,6 +190,19 @@ export function ReviewFormModal({
           </div>
         </form>
       </div>
+
+      <ConfirmModal
+        open={isConfirmDeleteOpen}
+        onOpenChange={setIsConfirmDeleteOpen}
+        title='Xóa đánh giá'
+        description='Bạn có chắc chắn muốn xóa đánh giá này không? Dữ liệu bị xóa sẽ không thể khôi phục.'
+        onConfirm={() => {
+          setIsConfirmDeleteOpen(false)
+          onDelete?.()
+        }}
+        confirmText='Xóa'
+        destructive
+      />
     </div>,
     document.body
   )
