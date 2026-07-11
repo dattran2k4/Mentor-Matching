@@ -33,7 +33,21 @@ export const QUERY_KEYS = {
       ['mentor', 'featured', params] as const
   },
   payment: {
-    detail: (paymentId: number) => ['payment', 'detail', paymentId] as const
+    detail: (paymentId: number) => ['payment', 'detail', paymentId] as const,
+    my: (params: {
+      page: number
+      size: number
+      status: string | null
+      sortBy: string | null
+      sortDir: string | null
+    }) => ['payment', 'me', params] as const,
+    mentorMe: (params: {
+      page: number
+      size: number
+      status: string | null
+      sortBy: string | null
+      sortDir: string | null
+    }) => ['payment', 'mentor-me', params] as const
   },
   booking: {
     me: ['booking', 'me'] as const,

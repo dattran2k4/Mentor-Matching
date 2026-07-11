@@ -12,6 +12,18 @@ export const formatShortBookingDate = (value: string) =>
     month: '2-digit'
   }).format(new Date(value))
 
+export const formatDateTime = (value: string | null) => {
+  if (!value) return 'Chưa có'
+
+  return new Intl.DateTimeFormat('vi-VN', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  }).format(new Date(value))
+}
+
 export const formatTimeRange = (startTime: string, endTime: string) => `${startTime} - ${endTime}`
 
 export const getInitials = (name: string) =>

@@ -161,7 +161,7 @@ function BookingFact({ icon: Icon, label, value }: BookingFactProps) {
         </div>
         <div className='min-w-0 space-y-1'>
           <p className='text-muted text-xs'>{label}</p>
-          <p className='text-ink text-sm font-semibold break-words'>{value}</p>
+          <p className='text-ink text-sm font-semibold wrap-break-word'>{value}</p>
         </div>
       </div>
     </div>

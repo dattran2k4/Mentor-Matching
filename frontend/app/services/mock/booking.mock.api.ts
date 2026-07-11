@@ -259,5 +259,22 @@ export const mockBookingApi = {
       paginate(filtered, params?.page ?? 1, params?.size ?? 10),
       'Get mentor bookings successfully'
     )
+  },
+
+  async completeBookingByMentor(bookingId: number): Promise<ApiResponse<null>> {
+    await delay()
+    requireMockSession()
+
+    mockBookings = mockBookings.map((booking) =>
+      booking.id === bookingId
+        ? {
+            ...booking,
+            status: 'COMPLETED',
+            updatedAt: new Date().toISOString()
+          }
+        : booking
+    )
+
+    return buildSuccessResponse(null, 'Complete booking successfully')
   }
 }
