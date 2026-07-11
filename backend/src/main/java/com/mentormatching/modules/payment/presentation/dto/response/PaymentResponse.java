@@ -3,18 +3,25 @@ package com.mentormatching.modules.payment.presentation.dto.response;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import com.mentormatching.modules.payment.application.dto.PaymentResult;
-import com.mentormatching.modules.payment.domain.PaymentMethod;
-import com.mentormatching.modules.payment.domain.PaymentProvider;
+import com.mentormatching.modules.payment.domain.Payment;
 import com.mentormatching.modules.payment.domain.PaymentStatus;
+import com.mentormatching.shared.response.PageResponse;
 
-public record PaymentResponse(Long id, Long bookingId, Long payerUserId, BigDecimal amount,
-                              PaymentMethod paymentMethod, PaymentProvider paymentProvider, PaymentStatus status,
-                              String checkoutUrl, LocalDateTime expiresAt) {
+public record PaymentResponse(Long id, Long bookingId, BigDecimal amount, PaymentStatus status,
+                              LocalDateTime paidAt, LocalDateTime createdAt) {
 
-    public static PaymentResponse from(PaymentResult result) {
-        return new PaymentResponse(result.id(), result.bookingId(), result.payerUserId(), result.amount(),
-                result.paymentMethod(), result.paymentProvider(), result.status(), result.checkoutUrl(),
-                result.expiresAt());
+    public static PaymentResponse from(Payment payment) {
+        return new PaymentResponse(payment.getId(), payment.getBookingId(), payment.getAmount(), payment.getStatus(),
+                payment.getPaidAt(), payment.getCreatedAt());
+    }
+
+    public static PageResponse<PaymentResponse> from(PageResponse<Payment> payments) {
+        return PageResponse.<PaymentResponse>builder()
+                .page(payments.getPage())
+                .pageSize(payments.getPageSize())
+                .totalPages(payments.getTotalPages())
+                .totalItems(payments.getTotalItems())
+                .data(payments.getData().stream().map(PaymentResponse::from).toList())
+                .build();
     }
 }
