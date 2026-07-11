@@ -33,6 +33,7 @@ import {
   TableRow
 } from '@/components/ui/table'
 import { path } from '@/config/path'
+import { BOOKING_STATUS_CONFIG } from '@/constants/booking-status'
 import { useCurrentUserQuery } from '@/hooks/queries/auth/useCurrentUserQuery'
 import { useCurrentUserBookingsQuery } from '@/hooks/queries/booking/useCurrentUserBookingsQuery'
 import { useCurrentLearnerProfileQuery } from '@/hooks/queries/user/useCurrentLearnerProfileQuery'
@@ -428,9 +429,9 @@ export default function UserDashboardPage() {
 
   const nextBookingStatusLabel =
     nextBooking && needsPayment(nextBooking)
-      ? 'Đang chờ thanh toán'
+      ? BOOKING_STATUS_CONFIG.PENDING.label
       : nextBooking?.status === 'CONFIRMED'
-        ? 'Đã xác nhận'
+        ? BOOKING_STATUS_CONFIG.CONFIRMED.label
         : 'Cập nhật lịch học'
 
   return (

@@ -7,6 +7,7 @@ import { AppSelect } from '@/components/ui/app-select'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { BOOKING_STATUS_CONFIG } from '@/constants/booking-status'
 import { mentorStudents } from '@/mocks/mentor-workspace'
 import type { MentorStudentRecord } from '@/mocks/mentor-workspace'
 import { cn } from '@/utils/cn'
@@ -17,9 +18,9 @@ type SubjectFilter = 'ALL' | 'TOAN_9' | 'TOAN_8' | 'ON_THI_10'
 
 const statusOptions = [
   { label: 'Theo trạng thái', value: 'ALL' },
-  { label: 'Đã xác nhận', value: 'CONFIRMED' },
-  { label: 'Chờ xác nhận', value: 'PENDING' },
-  { label: 'Hoàn thành', value: 'COMPLETED' }
+  { label: BOOKING_STATUS_CONFIG.CONFIRMED.label, value: 'CONFIRMED' },
+  { label: BOOKING_STATUS_CONFIG.PENDING.label, value: 'PENDING' },
+  { label: BOOKING_STATUS_CONFIG.COMPLETED.label, value: 'COMPLETED' }
 ] as const
 
 const subjectOptions = [
@@ -32,20 +33,20 @@ const subjectOptions = [
 function getStudentStatusMeta(student: MentorStudentRecord) {
   if (student.bookingStatus === 'CONFIRMED') {
     return {
-      label: 'Đã xác nhận',
+      label: BOOKING_STATUS_CONFIG.CONFIRMED.label,
       className: 'border-blue-200 bg-blue-50 text-blue-700'
     }
   }
 
   if (student.bookingStatus === 'PENDING') {
     return {
-      label: 'Chờ xác nhận',
+      label: BOOKING_STATUS_CONFIG.PENDING.label,
       className: 'border-amber-200 bg-amber-50 text-amber-700'
     }
   }
 
   return {
-    label: 'Hoàn thành',
+    label: BOOKING_STATUS_CONFIG.COMPLETED.label,
     className: 'border-emerald-200 bg-emerald-50 text-emerald-700'
   }
 }

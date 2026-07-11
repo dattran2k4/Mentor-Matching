@@ -1,6 +1,7 @@
 import axios from 'axios'
 import { motion } from 'framer-motion'
 import {
+  BookOpenText,
   Calendar,
   Clock,
   ExternalLink,
@@ -15,7 +16,6 @@ import { useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 
 import { DashboardPage } from '@/components/DashboardPage'
-import { EmptyState } from '@/components/EmptyState'
 import { ScreenErrorState } from '@/components/ScreenErrorState'
 import { StatusBadge } from '@/components/StatusBadge'
 import { Badge } from '@/components/ui/badge'
@@ -23,16 +23,17 @@ import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { path } from '@/config/path'
+import { BOOKING_STATUS_CONFIG, LEARNER_BOOKING_STATUS_FILTERS } from '@/constants/booking-status'
 import { useCurrentUserBookingsQuery } from '@/hooks/queries/booking/useCurrentUserBookingsQuery'
 import { useCreatePaymentMutation } from '@/hooks/queries/payment/useCreatePaymentMutation'
-import type { BookingApiResponse } from '@/types/api/booking'
+import type { BookingApiResponse, GetMyBookingsQueryParams } from '@/types/api/booking'
 import type { ErrorResponse } from '@/types/api/common'
 import type { PaymentApiResponse } from '@/types/api/payment'
 import type { PaymentStatus } from '@/types/models/booking'
 import { cn } from '@/utils/cn'
 import { formatPrice, formatShortBookingDate, formatTimeRange } from '@/utils/format'
 
-type BookingFilter = 'ALL' | 'UPCOMING' | 'PAYMENT_DUE' | 'COMPLETED' | 'CANCELLED'
+type BookingFilter = 'ALL' | (typeof LEARNER_BOOKING_STATUS_FILTERS)[number]
 
 type PaymentFeedback = {
   tone: 'success' | 'error'
@@ -49,11 +50,17 @@ type BookingFactProps = {
 
 const bookingFilters: Array<{ key: BookingFilter; label: string }> = [
   { key: 'ALL', label: 'Tất cả' },
-  { key: 'UPCOMING', label: 'Sắp tới' },
-  { key: 'PAYMENT_DUE', label: 'Cần thanh toán' },
-  { key: 'COMPLETED', label: 'Hoàn thành' },
-  { key: 'CANCELLED', label: 'Đã hủy' }
+  ...LEARNER_BOOKING_STATUS_FILTERS.map((status) => ({
+    key: status,
+    label: BOOKING_STATUS_CONFIG[status].label
+  }))
 ]
+
+function getBookingFilterLabel(filter: BookingFilter) {
+  if (filter === 'ALL') return 'tất cả'
+
+  return BOOKING_STATUS_CONFIG[filter].label.toLowerCase()
+}
 
 function getPaymentErrorMessage(error: unknown) {
   if (axios.isAxiosError<ErrorResponse>(error)) {
@@ -101,21 +108,6 @@ function getEffectivePaymentStatus(
   return null
 }
 
-function matchesFilter(booking: BookingApiResponse, filter: BookingFilter) {
-  switch (filter) {
-    case 'UPCOMING':
-      return booking.status === 'PENDING' || booking.status === 'CONFIRMED'
-    case 'PAYMENT_DUE':
-      return booking.status === 'PENDING'
-    case 'COMPLETED':
-      return booking.status === 'COMPLETED'
-    case 'CANCELLED':
-      return booking.status === 'CANCELLED' || booking.status === 'REJECTED'
-    default:
-      return true
-  }
-}
-
 function getPaymentPanelClass(booking: BookingApiResponse, paymentStatus: PaymentStatus | null) {
   if (paymentStatus === 'FAILED') {
     return 'border-red-200 bg-gradient-to-br from-red-50 to-white'
@@ -142,7 +134,7 @@ function getBookingMessage(booking: BookingApiResponse, paymentStatus: PaymentSt
   }
 
   if (booking.status === 'CONFIRMED') {
-    return 'Lịch học đã được xác nhận. Hãy kiểm tra thông tin và tham gia đúng giờ.'
+    return 'Lịch học đã được thanh toán. Hãy kiểm tra thông tin và tham gia đúng giờ.'
   }
 
   if (booking.status === 'COMPLETED') {
@@ -204,9 +196,17 @@ export function meta() {
 
 export default function UserBookingsPage() {
   const [searchParams] = useSearchParams()
-  const bookingsQuery = useCurrentUserBookingsQuery()
-  const createPaymentMutation = useCreatePaymentMutation()
   const [activeFilter, setActiveFilter] = useState<BookingFilter>('ALL')
+  const bookingQueryParams = useMemo<GetMyBookingsQueryParams>(
+    () => ({
+      page: 1,
+      size: 100,
+      status: activeFilter === 'ALL' ? undefined : activeFilter
+    }),
+    [activeFilter]
+  )
+  const bookingsQuery = useCurrentUserBookingsQuery(bookingQueryParams)
+  const createPaymentMutation = useCreatePaymentMutation()
   const [searchQuery, setSearchQuery] = useState('')
   const [activePaymentBookingId, setActivePaymentBookingId] = useState<number | null>(null)
   const [paymentSnapshots, setPaymentSnapshots] = useState<PaymentSnapshotMap>({})
@@ -236,23 +236,9 @@ export default function UserBookingsPage() {
         booking.subjectName.toLowerCase().includes(normalizedQuery) ||
         booking.gradeName.toLowerCase().includes(normalizedQuery)
 
-      return matchesFilter(booking, activeFilter) && matchesSearch
+      return matchesSearch
     })
-  }, [activeFilter, bookings, searchQuery])
-
-  const filterCounts = useMemo(
-    () =>
-      bookingFilters.reduce<Record<BookingFilter, number>>(
-        (counts, filter) => {
-          counts[filter.key] = bookings.filter((booking) =>
-            matchesFilter(booking, filter.key)
-          ).length
-          return counts
-        },
-        {} as Record<BookingFilter, number>
-      ),
-    [bookings]
-  )
+  }, [bookings, searchQuery])
 
   const handleCreatePayment = (booking: BookingApiResponse) => {
     setActivePaymentBookingId(booking.id)
@@ -364,18 +350,41 @@ export default function UserBookingsPage() {
               size='sm'
               variant={activeFilter === filter.key ? 'default' : 'secondary'}
             >
-              {filter.label} ({filterCounts[filter.key]})
+              {filter.label}
             </Button>
           ))}
         </div>
 
         {filteredBookings.length === 0 ? (
-          <EmptyState
-            actionHref={path.discover}
-            actionLabel='Tìm mentor'
-            description='Hãy thử một bộ lọc khác hoặc tìm mentor phù hợp cho buổi học tiếp theo.'
-            title='Chưa có lịch học phù hợp'
-          />
+          <Card className='overflow-hidden rounded-[28px] border-slate-200 bg-white shadow-sm'>
+            <CardContent className='grid gap-5 p-6 md:grid-cols-[minmax(0,1fr)_220px] md:items-center'>
+              <div className='flex items-start gap-4'>
+                <div className='bg-primary/10 text-primary flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl'>
+                  <BookOpenText aria-hidden='true' size={22} />
+                </div>
+                <div className='min-w-0 space-y-2'>
+                  <p className='text-ink text-2xl font-semibold tracking-tight'>
+                    Chưa có booking trong mục {getBookingFilterLabel(activeFilter)}
+                  </p>
+                  <p className='text-muted max-w-2xl text-sm leading-relaxed'>
+                    Bạn có thể đặt một buổi học mới từ danh sách mentor. Sau khi tạo booking, trạng
+                    thái thanh toán và lịch học sẽ được cập nhật tại đây.
+                  </p>
+                </div>
+              </div>
+
+              <Link
+                className={buttonVariants({
+                  className: 'h-11 rounded-xl md:justify-self-end',
+                  size: 'lg'
+                })}
+                to={path.discover}
+              >
+                <Search aria-hidden='true' size={16} />
+                Đặt lịch với mentor
+              </Link>
+            </CardContent>
+          </Card>
         ) : (
           <div className='space-y-4'>
             {filteredBookings.map((booking, index) => {

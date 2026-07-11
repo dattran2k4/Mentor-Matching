@@ -21,9 +21,10 @@ import { ScreenErrorState } from '@/components/ScreenErrorState'
 import { Badge } from '@/components/ui/badge'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { path } from '@/config/path'
+import { BOOKING_STATUS_CONFIG } from '@/constants/booking-status'
 import { useCurrentMentorBookingsQuery } from '@/hooks/queries/booking/useCurrentMentorBookingsQuery'
 import { useCurrentMentorScheduleQuery } from '@/hooks/queries/mentor/useCurrentMentorScheduleQuery'
-import { path } from '@/config/path'
 import type { BookingApiResponse } from '@/types/api/booking'
 import type {
   MentorAvailabilityDetailApiResponse,
@@ -144,8 +145,7 @@ function getMeetingTypeLabel(booking: BookingApiResponse) {
 }
 
 function getBookingStatusLabel(status: BookingApiResponse['status']) {
-  if (status === 'PENDING') return 'Chờ xác nhận'
-  return 'Đã xác nhận'
+  return BOOKING_STATUS_CONFIG[status].label
 }
 
 function getBookingNote(booking: BookingApiResponse) {

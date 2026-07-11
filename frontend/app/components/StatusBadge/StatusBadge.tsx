@@ -1,6 +1,7 @@
 import { AlertTriangle, CheckCircle2, Clock, ShieldAlert, XCircle } from 'lucide-react'
 
 import { Badge } from '@/components/ui/badge'
+import { BOOKING_STATUS_CONFIG } from '@/constants/booking-status'
 import type { BookingStatus, PaymentStatus } from '@/types/models/booking'
 import type { MentorApprovalStatus, MentorVerificationStatus } from '@/types/models/mentor'
 import type { UserStatus } from '@/types/models/user'
@@ -39,12 +40,12 @@ const statusConfigMap: Record<
   Partial<Record<StatusBadgeValue, { label: string; tone: StatusTone; icon: typeof CheckCircle2 }>>
 > = {
   booking: {
-    PENDING: { label: 'Chờ xác nhận', tone: 'warning', icon: Clock },
-    CONFIRMED: { label: 'Đã xác nhận', tone: 'success', icon: CheckCircle2 },
-    COMPLETED: { label: 'Hoàn thành', tone: 'success', icon: CheckCircle2 },
-    CANCELLED: { label: 'Đã hủy', tone: 'muted', icon: XCircle },
-    REJECTED: { label: 'Bị từ chối', tone: 'danger', icon: XCircle },
-    NO_SHOW: { label: 'Không tham gia', tone: 'danger', icon: AlertTriangle }
+    PENDING: { ...BOOKING_STATUS_CONFIG.PENDING, icon: Clock },
+    CONFIRMED: { ...BOOKING_STATUS_CONFIG.CONFIRMED, icon: CheckCircle2 },
+    COMPLETED: { ...BOOKING_STATUS_CONFIG.COMPLETED, icon: CheckCircle2 },
+    CANCELLED: { ...BOOKING_STATUS_CONFIG.CANCELLED, icon: XCircle },
+    REJECTED: { ...BOOKING_STATUS_CONFIG.REJECTED, icon: XCircle },
+    NO_SHOW: { ...BOOKING_STATUS_CONFIG.NO_SHOW, icon: AlertTriangle }
   },
   payment: {
     PENDING: { label: 'Chờ thanh toán', tone: 'warning', icon: Clock },
