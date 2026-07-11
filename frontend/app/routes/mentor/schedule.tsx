@@ -2,6 +2,7 @@ import { useMemo, useState } from 'react'
 import {
   BookOpen,
   CalendarDays,
+  CheckCircle2,
   ChevronRight,
   Clock3,
   Link as LinkIcon,
@@ -13,16 +14,13 @@ import { Link } from 'react-router'
 import { DashboardPage } from '@/components/DashboardPage'
 import { EmptyState } from '@/components/EmptyState'
 import { MentorAvailabilityModal } from '@/components/MentorAvailabilityModal'
-import {
-  MentorRejectBookingModal,
-  type MentorRejectBookingModalSession
-} from '@/components/MentorRejectBookingModal'
 import { ScreenErrorState } from '@/components/ScreenErrorState'
-import { Badge } from '@/components/ui/badge'
+import { StatusBadge } from '@/components/StatusBadge'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { path } from '@/config/path'
 import { BOOKING_STATUS_CONFIG } from '@/constants/booking-status'
+import { useCompleteBookingByMentorMutation } from '@/hooks/queries/booking/useCompleteBookingByMentorMutation'
 import { useCurrentMentorBookingsQuery } from '@/hooks/queries/booking/useCurrentMentorBookingsQuery'
 import { useCurrentMentorScheduleQuery } from '@/hooks/queries/mentor/useCurrentMentorScheduleQuery'
 import type { BookingApiResponse } from '@/types/api/booking'
@@ -30,6 +28,7 @@ import type {
   MentorAvailabilityDetailApiResponse,
   MentorAvailabilityTypeApiResponse
 } from '@/types/api/mentor'
+import type { BookingStatus } from '@/types/models/booking'
 import { cn } from '@/utils/cn'
 import { formatTimeRange } from '@/utils/format'
 
@@ -50,9 +49,19 @@ type BookedSessionItem = {
   meetingTypeLabel: string
   note: string
   bookingStatus: BookingApiResponse['status']
-  bookingStatusLabel: string
   joinLink: string | null
 }
+
+type BookingStatusFilter = 'ALL' | BookingStatus
+
+const bookingStatusFilters: Array<{ key: BookingStatusFilter; label: string }> = [
+  { key: 'ALL', label: 'Tất cả' },
+  { key: 'PENDING', label: BOOKING_STATUS_CONFIG.PENDING.label },
+  { key: 'CONFIRMED', label: BOOKING_STATUS_CONFIG.CONFIRMED.label },
+  { key: 'COMPLETED', label: BOOKING_STATUS_CONFIG.COMPLETED.label },
+  { key: 'CANCELLED', label: BOOKING_STATUS_CONFIG.CANCELLED.label },
+  { key: 'NO_SHOW', label: BOOKING_STATUS_CONFIG.NO_SHOW.label }
+]
 
 const scheduleTips = [
   {
@@ -144,10 +153,6 @@ function getMeetingTypeLabel(booking: BookingApiResponse) {
   return 'Offline'
 }
 
-function getBookingStatusLabel(status: BookingApiResponse['status']) {
-  return BOOKING_STATUS_CONFIG[status].label
-}
-
 function getBookingNote(booking: BookingApiResponse) {
   if (booking.note?.trim()) return booking.note.trim()
   if (booking.cancelReason?.trim()) return booking.cancelReason.trim()
@@ -196,13 +201,21 @@ export function meta() {
 
 export default function MentorSchedulePage() {
   const [availabilityModalOpen, setAvailabilityModalOpen] = useState(false)
-  const [rejectingSession, setRejectingSession] = useState<MentorRejectBookingModalSession | null>(
-    null
-  )
+  const [bookingStatusFilter, setBookingStatusFilter] = useState<BookingStatusFilter>('ALL')
   const mentorScheduleQuery = useCurrentMentorScheduleQuery()
+  const mentorBookingParams = useMemo(
+    () => ({
+      page: 1,
+      size: 100,
+      status: bookingStatusFilter === 'ALL' ? undefined : bookingStatusFilter
+    }),
+    [bookingStatusFilter]
+  )
   const mentorBookingsQuery = useCurrentMentorBookingsQuery(
+    mentorBookingParams,
     Boolean(mentorScheduleQuery.data?.currentMentor)
   )
+  const completeBookingMutation = useCompleteBookingByMentorMutation()
 
   const recurringAvailability = useMemo(
     () =>
@@ -236,7 +249,6 @@ export default function MentorSchedulePage() {
           meetingTypeLabel: getMeetingTypeLabel(booking),
           note: getBookingNote(booking),
           bookingStatus: booking.status,
-          bookingStatusLabel: getBookingStatusLabel(booking.status),
           joinLink: booking.meetingType === 'ONLINE' ? booking.meetingLink : null
         })),
     [mentorBookingsQuery.data]
@@ -383,7 +395,31 @@ export default function MentorSchedulePage() {
       </section>
 
       <section className='mt-5 space-y-5'>
-        <h2 className='text-ink text-[2rem] font-bold tracking-tight'>Buổi đã được đặt</h2>
+        <div className='flex flex-col gap-3 md:flex-row md:items-center md:justify-between'>
+          <h2 className='text-ink text-[2rem] font-bold tracking-tight'>Buổi đã được đặt</h2>
+          <div className='flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-2'>
+            {bookingStatusFilters.map((filter) => {
+              const isSelected = bookingStatusFilter === filter.key
+
+              return (
+                <Button
+                  className={cn(
+                    'rounded-xl border px-3 shadow-none transition-colors',
+                    isSelected
+                      ? 'border-sky-600 bg-sky-600 text-white hover:border-sky-700 hover:bg-sky-700'
+                      : 'border-slate-200 bg-white text-slate-700 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-800'
+                  )}
+                  key={filter.key}
+                  onClick={() => setBookingStatusFilter(filter.key)}
+                  size='sm'
+                  variant='outline'
+                >
+                  {filter.label}
+                </Button>
+              )
+            })}
+          </div>
+        </div>
 
         {mentorBookingsQuery.isLoading && !mentorBookingsQuery.data ? (
           <div className='space-y-3'>
@@ -420,24 +456,20 @@ export default function MentorSchedulePage() {
                     </div>
 
                     <div className='flex items-center gap-3'>
-                      <Badge variant={session.bookingStatus === 'PENDING' ? 'warning' : 'success'}>
-                        {session.bookingStatusLabel}
-                      </Badge>
-                      <Button
-                        className='h-10 rounded-xl border-red-200 bg-red-50 px-4 text-sm font-medium text-red-700 hover:border-red-300 hover:bg-red-100 hover:text-red-800'
-                        onClick={() =>
-                          setRejectingSession({
-                            learnerName: session.learnerName,
-                            subjectLabel: session.subjectLabel || 'Buổi học đang cập nhật',
-                            dateLabel: session.dateLabel,
-                            timeLabel: session.timeLabel,
-                            bookingStatusLabel: session.bookingStatusLabel
-                          })
-                        }
-                        variant='outline'
-                      >
-                        Từ chối buổi học
-                      </Button>
+                      <StatusBadge kind='booking' status={session.bookingStatus} />
+                      {session.bookingStatus === 'CONFIRMED' ? (
+                        <Button
+                          className='h-10 rounded-xl px-4 text-sm font-medium'
+                          isLoading={
+                            completeBookingMutation.isPending &&
+                            completeBookingMutation.variables === session.id
+                          }
+                          onClick={() => completeBookingMutation.mutate(session.id)}
+                        >
+                          <CheckCircle2 aria-hidden='true' size={15} />
+                          Đánh dấu hoàn thành
+                        </Button>
+                      ) : null}
                     </div>
                   </div>
 
@@ -493,15 +525,6 @@ export default function MentorSchedulePage() {
         )}
       </section>
 
-      <MentorRejectBookingModal
-        onOpenChange={(open) => {
-          if (!open) {
-            setRejectingSession(null)
-          }
-        }}
-        open={Boolean(rejectingSession)}
-        session={rejectingSession}
-      />
       <MentorAvailabilityModal
         onOpenChange={setAvailabilityModalOpen}
         open={availabilityModalOpen}

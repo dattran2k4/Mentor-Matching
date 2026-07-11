@@ -1,5 +1,6 @@
 import {
   Calendar,
+  CreditCard,
   LayoutDashboard,
   Settings,
   Users,
@@ -24,6 +25,7 @@ export type DashboardNavItem = {
 export const userNavItems: DashboardNavItem[] = [
   { label: 'Tổng quan', to: path.user.root, icon: LayoutDashboard, end: true },
   { label: 'Lịch học', to: path.user.bookings, icon: Calendar },
+  { label: 'Thanh toán', to: path.user.payments, icon: CreditCard },
   { label: 'Hồ sơ', to: path.user.profile, icon: UserCircle }
 ]
 

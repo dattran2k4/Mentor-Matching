@@ -16,6 +16,7 @@ export default [
     layout('layouts/user-layout.tsx', [
       index('routes/user/dashboard.tsx'),
       route('bookings', 'routes/user/bookings.tsx'),
+      route('payments', 'routes/user/payments.tsx'),
       route('profile', 'routes/user/profile.tsx')
     ])
   ]),
