@@ -26,6 +26,8 @@ import { path } from '@/config/path'
 import { BOOKING_STATUS_CONFIG, LEARNER_BOOKING_STATUS_FILTERS } from '@/constants/booking-status'
 import { useCurrentUserBookingsQuery } from '@/hooks/queries/booking/useCurrentUserBookingsQuery'
 import { useCreatePaymentMutation } from '@/hooks/queries/payment/useCreatePaymentMutation'
+import { useCreateReviewMutation } from '@/hooks/mutations/review/useCreateReviewMutation'
+import { ReviewFormModal, type ReviewFormData } from '@/features/review/components/ReviewFormModal'
 import type { BookingApiResponse, GetMyBookingsQueryParams } from '@/types/api/booking'
 import type { ErrorResponse } from '@/types/api/common'
 import type { PaymentApiResponse } from '@/types/api/payment'
@@ -207,8 +209,10 @@ export default function UserBookingsPage() {
   )
   const bookingsQuery = useCurrentUserBookingsQuery(bookingQueryParams)
   const createPaymentMutation = useCreatePaymentMutation()
+  const createReviewMutation = useCreateReviewMutation()
   const [searchQuery, setSearchQuery] = useState('')
   const [activePaymentBookingId, setActivePaymentBookingId] = useState<number | null>(null)
+  const [activeReviewBooking, setActiveReviewBooking] = useState<BookingApiResponse | null>(null)
   const [paymentSnapshots, setPaymentSnapshots] = useState<PaymentSnapshotMap>({})
   const [paymentFeedbackByBookingId, setPaymentFeedbackByBookingId] = useState<
     Record<number, PaymentFeedback>
@@ -285,6 +289,27 @@ export default function UserBookingsPage() {
         },
         onSettled: () => {
           setActivePaymentBookingId(null)
+        }
+      }
+    )
+  }
+
+  const handleCreateReview = (data: ReviewFormData) => {
+    if (!activeReviewBooking) return
+
+    createReviewMutation.mutate(
+      {
+        bookingId: activeReviewBooking.id,
+        rating: data.rating,
+        comment: data.comment
+      },
+      {
+        onSuccess: () => {
+          setActiveReviewBooking(null)
+          alert('Gửi đánh giá thành công!')
+        },
+        onError: (error) => {
+          alert(getPaymentErrorMessage(error))
         }
       }
     )
@@ -401,6 +426,7 @@ export default function UserBookingsPage() {
                 booking.status === 'CONFIRMED' &&
                 booking.meetingType === 'ONLINE' &&
                 Boolean(booking.meetingLink?.trim())
+              const canReview = booking.status === 'COMPLETED'
               const shouldFindAnotherMentor =
                 booking.status === 'CANCELLED' || booking.status === 'REJECTED'
 
@@ -524,6 +550,15 @@ export default function UserBookingsPage() {
                               <Video aria-hidden='true' size={16} />
                               Vào lớp học
                             </a>
+                          ) : canReview ? (
+                            <Button
+                              className='w-full'
+                              onClick={() => setActiveReviewBooking(booking)}
+                              size='lg'
+                            >
+                              <Star aria-hidden='true' size={16} />
+                              Viết đánh giá
+                            </Button>
                           ) : shouldFindAnotherMentor ? (
                             <Link
                               className={buttonVariants({ className: 'w-full', size: 'lg' })}
@@ -579,6 +614,14 @@ export default function UserBookingsPage() {
           </div>
         )}
       </div>
+
+      <ReviewFormModal
+        open={!!activeReviewBooking}
+        onOpenChange={(open) => !open && setActiveReviewBooking(null)}
+        onSubmit={handleCreateReview}
+        isSubmitting={createReviewMutation.isPending}
+        title={activeReviewBooking ? `Đánh giá mentor ${activeReviewBooking.mentorName}` : 'Viết đánh giá'}
+      />
     </DashboardPage>
   )
 }
