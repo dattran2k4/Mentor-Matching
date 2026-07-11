@@ -19,6 +19,7 @@ import { StatusBadge } from '@/components/StatusBadge'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { path } from '@/config/path'
+import { BOOKING_STATUS_CONFIG } from '@/constants/booking-status'
 import { useCompleteBookingByMentorMutation } from '@/hooks/queries/booking/useCompleteBookingByMentorMutation'
 import { useCurrentMentorBookingsQuery } from '@/hooks/queries/booking/useCurrentMentorBookingsQuery'
 import { useCurrentMentorScheduleQuery } from '@/hooks/queries/mentor/useCurrentMentorScheduleQuery'
@@ -27,6 +28,7 @@ import type {
   MentorAvailabilityDetailApiResponse,
   MentorAvailabilityTypeApiResponse
 } from '@/types/api/mentor'
+import type { BookingStatus } from '@/types/models/booking'
 import { cn } from '@/utils/cn'
 import { formatTimeRange } from '@/utils/format'
 
@@ -49,6 +51,17 @@ type BookedSessionItem = {
   bookingStatus: BookingApiResponse['status']
   joinLink: string | null
 }
+
+type BookingStatusFilter = 'ALL' | BookingStatus
+
+const bookingStatusFilters: Array<{ key: BookingStatusFilter; label: string }> = [
+  { key: 'ALL', label: 'Tất cả' },
+  { key: 'PENDING', label: BOOKING_STATUS_CONFIG.PENDING.label },
+  { key: 'CONFIRMED', label: BOOKING_STATUS_CONFIG.CONFIRMED.label },
+  { key: 'COMPLETED', label: BOOKING_STATUS_CONFIG.COMPLETED.label },
+  { key: 'CANCELLED', label: BOOKING_STATUS_CONFIG.CANCELLED.label },
+  { key: 'NO_SHOW', label: BOOKING_STATUS_CONFIG.NO_SHOW.label }
+]
 
 const scheduleTips = [
   {
@@ -188,8 +201,18 @@ export function meta() {
 
 export default function MentorSchedulePage() {
   const [availabilityModalOpen, setAvailabilityModalOpen] = useState(false)
+  const [bookingStatusFilter, setBookingStatusFilter] = useState<BookingStatusFilter>('ALL')
   const mentorScheduleQuery = useCurrentMentorScheduleQuery()
+  const mentorBookingParams = useMemo(
+    () => ({
+      page: 1,
+      size: 100,
+      status: bookingStatusFilter === 'ALL' ? undefined : bookingStatusFilter
+    }),
+    [bookingStatusFilter]
+  )
   const mentorBookingsQuery = useCurrentMentorBookingsQuery(
+    mentorBookingParams,
     Boolean(mentorScheduleQuery.data?.currentMentor)
   )
   const completeBookingMutation = useCompleteBookingByMentorMutation()
@@ -372,7 +395,31 @@ export default function MentorSchedulePage() {
       </section>
 
       <section className='mt-5 space-y-5'>
-        <h2 className='text-ink text-[2rem] font-bold tracking-tight'>Buổi đã được đặt</h2>
+        <div className='flex flex-col gap-3 md:flex-row md:items-center md:justify-between'>
+          <h2 className='text-ink text-[2rem] font-bold tracking-tight'>Buổi đã được đặt</h2>
+          <div className='flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-2'>
+            {bookingStatusFilters.map((filter) => {
+              const isSelected = bookingStatusFilter === filter.key
+
+              return (
+                <Button
+                  className={cn(
+                    'rounded-xl border px-3 shadow-none transition-colors',
+                    isSelected
+                      ? 'border-sky-600 bg-sky-600 text-white hover:border-sky-700 hover:bg-sky-700'
+                      : 'border-slate-200 bg-white text-slate-700 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-800'
+                  )}
+                  key={filter.key}
+                  onClick={() => setBookingStatusFilter(filter.key)}
+                  size='sm'
+                  variant='outline'
+                >
+                  {filter.label}
+                </Button>
+              )
+            })}
+          </div>
+        </div>
 
         {mentorBookingsQuery.isLoading && !mentorBookingsQuery.data ? (
           <div className='space-y-3'>

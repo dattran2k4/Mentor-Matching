@@ -9,7 +9,7 @@ export function useCompleteBookingByMentorMutation() {
   return useMutation({
     mutationFn: (bookingId: number) => bookingApi.completeBookingByMentor(bookingId),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.booking.mentorMe })
+      void queryClient.invalidateQueries({ queryKey: QUERY_KEYS.booking.mentorMeBase })
     }
   })
 }

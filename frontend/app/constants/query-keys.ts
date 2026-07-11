@@ -57,7 +57,15 @@ export const QUERY_KEYS = {
       status: string | null
       meetingType: string | null
     }) => ['booking', 'me', params] as const,
-    mentorMe: ['booking', 'mentor-me'] as const
+    mentorMeBase: ['booking', 'mentor-me'] as const,
+    mentorMe: (params: {
+      page: number
+      size: number
+      status: string | null
+      meetingType: string | null
+      bookingDateFrom: string | null
+      bookingDateTo: string | null
+    }) => ['booking', 'mentor-me', params] as const
   },
   location: {
     cities: (search: string) => ['location', 'cities', search] as const,
