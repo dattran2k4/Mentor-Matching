@@ -1,13 +1,11 @@
 import { ChevronLeft, ChevronRight, RotateCcw, Search, SlidersHorizontal } from 'lucide-react'
 import { type FormEvent, useMemo, useState } from 'react'
-import { useSearchParams } from 'react-router'
 
 import { EmptyState } from '@/components/EmptyState'
 import {
   AdvancedMentorFiltersDrawer,
   type AdvancedMentorFilterOption
 } from '@/components/AdvancedMentorFiltersDrawer'
-import type { FilterGroup } from '@/components/FilterSidebar'
 import MentorCard from '@/components/MentorCard'
 import { ScreenErrorState } from '@/components/ScreenErrorState'
 import { Badge } from '@/components/ui/badge'
@@ -19,21 +17,14 @@ import { useCatalogOptionsQuery } from '@/hooks/queries/catalog/useCatalogOption
 import { useCitiesQuery } from '@/hooks/queries/location/useCitiesQuery'
 import { useDistrictsByCityQuery } from '@/hooks/queries/location/useDistrictsByCityQuery'
 import { useDiscoverMentorsQuery } from '@/hooks/queries/mentor/useDiscoverMentorsQuery'
+import { type DiscoverFilterKey, useDiscoverFilters } from '@/hooks/useDiscoverFilters'
 import { mapDiscoverMentorToCard } from '@/features/discover/discover.mapper'
-import type { CatalogGradeApiResponse, CatalogOptionsApiResponse } from '@/types/api/catalog'
-import type { SortDirection } from '@/types/api/common'
-import type { CityApiResponse, DistrictApiResponse } from '@/types/api/location'
-import type {
-  GetMentorsQueryParams,
-  MentorGenderApiResponse,
-  MentorListSortByApiParam,
-  MentorMeetingTypeApiResponse
-} from '@/types/api/mentor'
+import type { Gender, SortDirection } from '@/types/api/common'
+import type { MentorListSortBy, MentorMeetingType } from '@/types/api/mentor'
 
-const DISCOVER_PAGE_SIZE = 9
 const meetingTypeOptions: Array<{
   label: string
-  value: MentorMeetingTypeApiResponse
+  value: MentorMeetingType
   helper: string
 }> = [
   { label: 'Online', value: 'ONLINE', helper: 'Học trực tuyến' },
@@ -41,7 +32,7 @@ const meetingTypeOptions: Array<{
   { label: 'Hybrid', value: 'HYBRID', helper: 'Kết hợp online và trực tiếp' }
 ]
 
-const genderOptions: Array<{ label: string; value: MentorGenderApiResponse }> = [
+const genderOptions: Array<{ label: string; value: Gender }> = [
   { label: 'Nam', value: 'MALE' },
   { label: 'Nữ', value: 'FEMALE' },
   { label: 'Khác', value: 'OTHER' }
@@ -50,7 +41,7 @@ const genderOptions: Array<{ label: string; value: MentorGenderApiResponse }> = 
 type DiscoverSortOption = {
   key: string
   label: string
-  sortBy: MentorListSortByApiParam | null
+  sortBy: MentorListSortBy | null
   sortDir: SortDirection | null
 }
 
@@ -61,19 +52,24 @@ const sortOptions: DiscoverSortOption[] = [
 ]
 
 const Discover = () => {
-  const [searchParams, setSearchParams] = useSearchParams()
   const [filtersOpen, setFiltersOpen] = useState(false)
-
-  const search = searchParams.get('search')?.trim() ?? ''
-  const page = parsePositiveInteger(searchParams.get('page')) ?? 1
-  const selectedMeetingType = parseMeetingType(searchParams.get('meetingType'))
-  const selectedCityId = parsePositiveInteger(searchParams.get('cityId'))
-  const selectedDistrictId = parsePositiveInteger(searchParams.get('districtId'))
-  const selectedSubjectId = parsePositiveInteger(searchParams.get('subjectId'))
-  const selectedGradeId = parsePositiveInteger(searchParams.get('gradeId'))
-  const selectedGender = parseGender(searchParams.get('gender'))
-  const sortBy = parseSortBy(searchParams.get('sortBy'))
-  const sortDir = parseSortDirection(searchParams.get('sortDir'))
+  const {
+    filters,
+    page,
+    queryParams: mentorQueryParams,
+    resetFilters,
+    search,
+    selectedCityId,
+    selectedDistrictId,
+    selectedGender,
+    selectedGradeId,
+    selectedMeetingType,
+    selectedSubjectId,
+    setFilter,
+    setFilters,
+    sortBy,
+    sortDir
+  } = useDiscoverFilters()
 
   const catalogOptionsQuery = useCatalogOptionsQuery()
   const citiesQuery = useCitiesQuery('')
@@ -82,61 +78,49 @@ const Discover = () => {
   const districts = useMemo(() => districtsQuery.data ?? [], [districtsQuery.data])
   const activeSort = useMemo(() => resolveSortOption(sortBy, sortDir), [sortBy, sortDir])
 
-  const mentorQueryParams = useMemo<GetMentorsQueryParams>(() => {
-    const params: GetMentorsQueryParams = { page, size: DISCOVER_PAGE_SIZE }
-
-    if (search) params.search = search
-    if (selectedMeetingType) params.meetingType = selectedMeetingType
-    if (selectedCityId) params.cityId = selectedCityId
-    if (selectedDistrictId) params.districtId = selectedDistrictId
-    if (selectedSubjectId) params.subjectId = selectedSubjectId
-    if (selectedGradeId) params.gradeId = selectedGradeId
-    if (selectedGender) params.gender = selectedGender
-    if (activeSort.sortBy && activeSort.sortDir) {
-      params.sortBy = activeSort.sortBy
-      params.sortDir = activeSort.sortDir
-    }
-
-    return params
-  }, [
-    activeSort.sortBy,
-    activeSort.sortDir,
-    page,
-    search,
-    selectedCityId,
-    selectedDistrictId,
-    selectedGender,
-    selectedGradeId,
-    selectedMeetingType,
-    selectedSubjectId
-  ])
-
   const mentorsQuery = useDiscoverMentorsQuery(mentorQueryParams)
   const mentorCards = useMemo(
     () => (mentorsQuery.data?.data ?? []).map(mapDiscoverMentorToCard),
     [mentorsQuery.data]
   )
 
-  const filterGroups = useMemo<FilterGroup[]>(() => {
-    if (!catalogOptionsQuery.data) return []
+  const filterDetails = useMemo(() => {
+    const detailMap = new Map<string, FilterDetail>()
+    const addFilterDetail = (key: DiscoverFilterKey, value: string, label: string) => {
+      detailMap.set(`${key}:${value}`, { key, label, value })
+    }
 
-    return buildFilterGroups({
-      catalogOptions: catalogOptionsQuery.data,
-      cities,
-      districts,
-      selectedCityId
+    catalogOptionsQuery.data?.subjects.forEach((subject) => {
+      addFilterDetail('subjectId', String(subject.id), subject.name)
     })
-  }, [catalogOptionsQuery.data, cities, districts, selectedCityId])
+    catalogOptionsQuery.data?.grades.forEach((grade) => {
+      addFilterDetail('gradeId', String(grade.id), grade.name)
+    })
+    meetingTypeOptions.forEach((option) => {
+      addFilterDetail('meetingType', option.value, option.label)
+    })
+    cities.forEach((city) => {
+      addFilterDetail('cityId', String(city.id), city.name)
+    })
+    if (selectedCityId) {
+      districts.forEach((district) => {
+        addFilterDetail('districtId', String(district.id), district.name)
+      })
+    }
+    genderOptions.forEach((option) => {
+      addFilterDetail('gender', option.value, option.label)
+    })
 
-  const filterDetails = useMemo(() => buildFilterDetailMap(filterGroups), [filterGroups])
+    return detailMap
+  }, [catalogOptionsQuery.data, cities, districts, selectedCityId])
   const selectedFilterValues = useMemo(
     () =>
       [
-        selectedSubjectId ? `subject:${selectedSubjectId}` : null,
-        selectedGradeId ? `grade:${selectedGradeId}` : null,
-        selectedMeetingType ? `meeting:${selectedMeetingType}` : null,
-        selectedCityId ? `city:${selectedCityId}` : null,
-        selectedDistrictId ? `district:${selectedDistrictId}` : null,
+        selectedSubjectId ? `subjectId:${selectedSubjectId}` : null,
+        selectedGradeId ? `gradeId:${selectedGradeId}` : null,
+        selectedMeetingType ? `meetingType:${selectedMeetingType}` : null,
+        selectedCityId ? `cityId:${selectedCityId}` : null,
+        selectedDistrictId ? `districtId:${selectedDistrictId}` : null,
         selectedGender ? `gender:${selectedGender}` : null
       ].filter((value): value is string => Boolean(value)),
     [
@@ -167,94 +151,40 @@ const Discover = () => {
     (selectedCityId ? districtsQuery.error : null) ??
     null
 
-  const setFilterParam = (key: string, value: string) => {
-    const nextParams = new URLSearchParams(searchParams)
-
-    if (value) nextParams.set(key, value)
-    else nextParams.delete(key)
-
-    if (key === 'cityId') nextParams.delete('districtId')
-    nextParams.delete('page')
-    setSearchParams(nextParams)
-  }
-
-  const handleFilterToggle = (value: string) => {
-    const [group, rawValue] = value.split(':')
-    const paramMap: Record<string, string> = {
-      subject: 'subjectId',
-      grade: 'gradeId',
-      meeting: 'meetingType',
-      city: 'cityId',
-      district: 'districtId',
-      gender: 'gender'
-    }
-    const key = paramMap[group]
-    if (!key) return
-
-    const nextParams = new URLSearchParams(searchParams)
-    toggleSingleQueryParam(nextParams, key, rawValue)
-    if (group === 'city') nextParams.delete('districtId')
-    nextParams.delete('page')
-    setSearchParams(nextParams)
-  }
-
   const handleSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    const nextParams = new URLSearchParams(searchParams)
     const formData = new FormData(event.currentTarget)
-    const keyword = String(formData.get('search') ?? '').trim()
-
-    if (keyword) nextParams.set('search', keyword)
-    else nextParams.delete('search')
-
-    nextParams.delete('page')
-    setSearchParams(nextParams)
+    setFilter('search', String(formData.get('search') ?? ''))
   }
 
-  const handleAdvancedFiltersApply = (values: string[]) => {
-    const nextParams = new URLSearchParams(searchParams)
-
-    nextParams.delete('meetingType')
-    nextParams.delete('districtId')
-    nextParams.delete('gender')
+  const handleDrawerFiltersApply = (values: string[]) => {
+    const updates: Parameters<typeof setFilters>[0] = {
+      districtId: null,
+      gender: null,
+      meetingType: null
+    }
 
     values.forEach((value) => {
       const [group, rawValue] = value.split(':')
-      if (group === 'meeting') nextParams.set('meetingType', rawValue)
-      if (group === 'district' && selectedCityId) nextParams.set('districtId', rawValue)
-      if (group === 'gender') nextParams.set('gender', rawValue)
+      if (group === 'meeting') updates.meetingType = rawValue
+      if (group === 'district' && selectedCityId) updates.districtId = rawValue
+      if (group === 'gender') updates.gender = rawValue
     })
 
-    nextParams.delete('page')
-    setSearchParams(nextParams)
+    setFilters(updates)
     setFiltersOpen(false)
-  }
-
-  const handleResetAll = () => {
-    setSearchParams(new URLSearchParams())
   }
 
   const handleSortChange = (sortKey: string) => {
     const nextSort = sortOptions.find((option) => option.key === sortKey) ?? sortOptions[0]
-    const nextParams = new URLSearchParams(searchParams)
-
-    if (nextSort.sortBy && nextSort.sortDir) {
-      nextParams.set('sortBy', nextSort.sortBy)
-      nextParams.set('sortDir', nextSort.sortDir)
-    } else {
-      nextParams.delete('sortBy')
-      nextParams.delete('sortDir')
-    }
-
-    nextParams.delete('page')
-    setSearchParams(nextParams)
+    setFilters({
+      sortBy: nextSort.sortBy,
+      sortDir: nextSort.sortDir
+    })
   }
 
   const handlePageChange = (nextPage: number) => {
-    const nextParams = new URLSearchParams(searchParams)
-    if (nextPage <= 1) nextParams.delete('page')
-    else nextParams.set('page', String(nextPage))
-    setSearchParams(nextParams)
+    setFilter('page', nextPage <= 1 ? null : String(nextPage))
   }
 
   const mentorPage = mentorsQuery.data
@@ -284,8 +214,8 @@ const Discover = () => {
                   value: String(subject.id)
                 }))}
                 placeholder='Môn học'
-                value={selectedSubjectId ? String(selectedSubjectId) : ''}
-                onValueChange={(value) => setFilterParam('subjectId', value)}
+                value={filters.subjectId ?? ''}
+                onValueChange={(value) => setFilter('subjectId', value)}
               />
 
               <AppSelect
@@ -297,8 +227,8 @@ const Discover = () => {
                   value: String(grade.id)
                 }))}
                 placeholder='Lớp học'
-                value={selectedGradeId ? String(selectedGradeId) : ''}
-                onValueChange={(value) => setFilterParam('gradeId', value)}
+                value={filters.gradeId ?? ''}
+                onValueChange={(value) => setFilter('gradeId', value)}
               />
 
               <AppSelect
@@ -310,8 +240,8 @@ const Discover = () => {
                   value: String(city.id)
                 }))}
                 placeholder='Địa điểm'
-                value={selectedCityId ? String(selectedCityId) : ''}
-                onValueChange={(value) => setFilterParam('cityId', value)}
+                value={filters.cityId ?? ''}
+                onValueChange={(value) => setFilter('cityId', value)}
               />
 
               <Button
@@ -358,10 +288,10 @@ const Discover = () => {
               {search ? <Badge variant='outline'>Từ khóa: {search}</Badge> : null}
               {activeFilterDetails.map((filter) => (
                 <button
-                  key={filter.value}
+                  key={`${filter.key}:${filter.value}`}
                   className='inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-medium text-blue-700 hover:border-blue-300'
                   type='button'
-                  onClick={() => handleFilterToggle(filter.value)}
+                  onClick={() => setFilter(filter.key, null)}
                 >
                   {filter.label}
                   <span aria-hidden='true'>×</span>
@@ -372,7 +302,7 @@ const Discover = () => {
                 size='sm'
                 type='button'
                 variant='ghost'
-                onClick={handleResetAll}
+                onClick={resetFilters}
               >
                 <RotateCcw size={13} />
                 Xóa tất cả
@@ -474,7 +404,7 @@ const Discover = () => {
         ) : (
           <EmptyState
             action={
-              <Button className='rounded-full' type='button' onClick={handleResetAll}>
+              <Button className='rounded-full' type='button' onClick={resetFilters}>
                 Xóa bộ lọc và tìm lại
               </Button>
             }
@@ -502,7 +432,7 @@ const Discover = () => {
             value: `meeting:${option.value}`
           }))}
           selectedValues={selectedAdvancedFilterValues}
-          onApply={handleAdvancedFiltersApply}
+          onApply={handleDrawerFiltersApply}
           onClose={() => setFiltersOpen(false)}
         />
       ) : null}
@@ -537,139 +467,12 @@ function MentorGridSkeleton() {
 }
 
 type FilterDetail = {
-  group: string
+  key: DiscoverFilterKey
   label: string
   value: string
 }
 
-function buildFilterDetailMap(groups: FilterGroup[]) {
-  const detailMap = new Map<string, FilterDetail>()
-
-  groups.forEach((group) => {
-    group.items.forEach((item) => {
-      detailMap.set(item.value, {
-        group: group.title,
-        label: item.label,
-        value: item.value
-      })
-    })
-  })
-
-  return detailMap
-}
-
-function buildFilterGroups({
-  catalogOptions,
-  cities,
-  districts,
-  selectedCityId
-}: {
-  catalogOptions: CatalogOptionsApiResponse
-  cities: CityApiResponse[]
-  districts: DistrictApiResponse[]
-  selectedCityId: number | null
-}): FilterGroup[] {
-  const groups: FilterGroup[] = [
-    {
-      title: 'Môn học',
-      items: catalogOptions.subjects.map((subject) => ({
-        label: subject.name,
-        value: `subject:${subject.id}`,
-        helper: subject.description || undefined
-      }))
-    },
-    {
-      title: 'Cấp lớp',
-      items: catalogOptions.grades.map((grade) => ({
-        label: grade.name,
-        value: `grade:${grade.id}`,
-        helper: formatGradeHelper(grade)
-      }))
-    },
-    {
-      title: 'Hình thức học',
-      items: meetingTypeOptions.map((option) => ({
-        label: option.label,
-        value: `meeting:${option.value}`,
-        helper: option.helper
-      }))
-    },
-    {
-      title: 'Thành phố',
-      items: cities.map((city) => ({
-        label: city.name,
-        value: `city:${city.id}`
-      }))
-    }
-  ]
-
-  if (selectedCityId) {
-    groups.push({
-      title: 'Quận / Huyện',
-      items: districts.map((district) => ({
-        label: district.name,
-        value: `district:${district.id}`
-      }))
-    })
-  }
-
-  groups.push({
-    title: 'Giới tính',
-    items: genderOptions.map((option) => ({
-      label: option.label,
-      value: `gender:${option.value}`
-    }))
-  })
-
-  return groups
-}
-
-function formatGradeHelper(grade: CatalogGradeApiResponse) {
-  if (grade.levelGroup === 'PRIMARY') return 'Tiểu học'
-  if (grade.levelGroup === 'SECONDARY') return 'THCS'
-  return 'THPT'
-}
-
-function toggleSingleQueryParam(params: URLSearchParams, key: string, value: string) {
-  if (params.get(key) === value) params.delete(key)
-  else params.set(key, value)
-}
-
-function parsePositiveInteger(value: string | null) {
-  if (!value) return null
-  const parsedValue = Number(value)
-  return Number.isInteger(parsedValue) && parsedValue > 0 ? parsedValue : null
-}
-
-function parseMeetingType(value: string | null): MentorMeetingTypeApiResponse | null {
-  return value === 'ONLINE' || value === 'OFFLINE' || value === 'HYBRID' ? value : null
-}
-
-function parseGender(value: string | null): MentorGenderApiResponse | null {
-  return value === 'MALE' || value === 'FEMALE' || value === 'OTHER' ? value : null
-}
-
-function parseSortBy(value: string | null): MentorListSortByApiParam | null {
-  if (
-    value === 'id' ||
-    value === 'fullName' ||
-    value === 'gender' ||
-    value === 'experienceYears' ||
-    value === 'meetingType' ||
-    value === 'createdAt' ||
-    value === 'minPrice'
-  ) {
-    return value
-  }
-
-  return null
-}
-
-function parseSortDirection(value: string | null): SortDirection | null {
-  return value === 'asc' || value === 'desc' ? value : null
-}
-
-function resolveSortOption(sortBy: MentorListSortByApiParam | null, sortDir: SortDirection | null) {
+function resolveSortOption(sortBy: MentorListSortBy | null, sortDir: SortDirection | null) {
   return (
     sortOptions.find((option) => option.sortBy === sortBy && option.sortDir === sortDir) ??
     sortOptions[0]

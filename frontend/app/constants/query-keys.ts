@@ -10,9 +10,12 @@ export const QUERY_KEYS = {
   },
   mentor: {
     currentProfile: ['mentor', 'current-profile'] as const,
+    currentOnboardingStatus: ['mentor', 'current-onboarding-status'] as const,
     currentVerification: ['mentor', 'current-verification'] as const,
     currentSchedule: ['mentor', 'current-schedule'] as const,
     detail: (mentorId: number) => ['mentor', 'detail', mentorId] as const,
+    calendar: (params: { mentorId: number; from: string; to: string }) =>
+      ['mentor', 'calendar', params] as const,
     list: (params: {
       page: number
       size: number
@@ -30,7 +33,21 @@ export const QUERY_KEYS = {
       ['mentor', 'featured', params] as const
   },
   payment: {
-    detail: (paymentId: number) => ['payment', 'detail', paymentId] as const
+    detail: (paymentId: number) => ['payment', 'detail', paymentId] as const,
+    my: (params: {
+      page: number
+      size: number
+      status: string | null
+      sortBy: string | null
+      sortDir: string | null
+    }) => ['payment', 'me', params] as const,
+    mentorMe: (params: {
+      page: number
+      size: number
+      status: string | null
+      sortBy: string | null
+      sortDir: string | null
+    }) => ['payment', 'mentor-me', params] as const
   },
   booking: {
     me: ['booking', 'me'] as const,
@@ -40,7 +57,15 @@ export const QUERY_KEYS = {
       status: string | null
       meetingType: string | null
     }) => ['booking', 'me', params] as const,
-    mentorMe: ['booking', 'mentor-me'] as const
+    mentorMeBase: ['booking', 'mentor-me'] as const,
+    mentorMe: (params: {
+      page: number
+      size: number
+      status: string | null
+      meetingType: string | null
+      bookingDateFrom: string | null
+      bookingDateTo: string | null
+    }) => ['booking', 'mentor-me', params] as const
   },
   location: {
     cities: (search: string) => ['location', 'cities', search] as const,

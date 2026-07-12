@@ -14,7 +14,9 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,13 +26,19 @@ import org.springframework.web.bind.annotation.RestController;
 import com.mentormatching.modules.mentor.application.dto.GetMentorsQuery;
 import com.mentormatching.modules.mentor.application.dto.MentorDetail;
 import com.mentormatching.modules.mentor.application.dto.MentorListItem;
+import com.mentormatching.modules.mentor.application.port.in.CreateCurrentMentorUseCase;
+import com.mentormatching.modules.mentor.application.port.in.GetCurrentMentorOnboardingStatusUseCase;
 import com.mentormatching.modules.mentor.application.port.in.GetCurrentMentorUseCase;
 import com.mentormatching.modules.mentor.application.port.in.GetMentorDetailUseCase;
 import com.mentormatching.modules.mentor.application.port.in.GetMentorsUseCase;
+import com.mentormatching.modules.mentor.application.port.in.SubmitCurrentMentorApplicationUseCase;
+import com.mentormatching.modules.mentor.application.port.in.UpdateCurrentMentorAvatarUseCase;
 import com.mentormatching.modules.mentor.application.port.in.UpdateCurrentMentorUseCase;
 import com.mentormatching.modules.mentor.domain.Gender;
 import com.mentormatching.modules.mentor.domain.MeetingType;
 import com.mentormatching.modules.mentor.presentation.dto.request.UpdateCurrentMentorRequest;
+import com.mentormatching.modules.mentor.presentation.dto.request.UpdateCurrentMentorAvatarRequest;
+import com.mentormatching.modules.mentor.presentation.dto.response.CurrentMentorOnboardingStatusResponse;
 import com.mentormatching.modules.mentor.presentation.dto.response.CurrentMentorResponse;
 import com.mentormatching.modules.mentor.presentation.dto.response.MentorDetailResponse;
 import com.mentormatching.modules.mentor.presentation.dto.response.MentorListItemResponse;
@@ -50,11 +58,24 @@ import jakarta.validation.constraints.Min;
 @RequestMapping("/api/v1/mentors")
 public class MentorController {
 
+    private final CreateCurrentMentorUseCase createCurrentMentorUseCase;
+    private final GetCurrentMentorOnboardingStatusUseCase getCurrentMentorOnboardingStatusUseCase;
+    private final SubmitCurrentMentorApplicationUseCase submitCurrentMentorApplicationUseCase;
     private final GetCurrentMentorUseCase getCurrentMentorUseCase;
     private final UpdateCurrentMentorUseCase updateCurrentMentorUseCase;
+    private final UpdateCurrentMentorAvatarUseCase updateCurrentMentorAvatarUseCase;
     private final GetMentorsUseCase getMentorsUseCase;
     private final GetMentorDetailUseCase getMentorDetailUseCase;
     private final ApiResponseFactory apiResponseFactory;
+
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/me")
+    public ApiResponse<CurrentMentorResponse> createCurrentMentor(
+            @AuthenticationPrincipal AuthenticatedPrincipal principal,
+            @Valid @RequestBody UpdateCurrentMentorRequest request) {
+        return apiResponseFactory.success(CurrentMentorResponse.from(createCurrentMentorUseCase.createCurrentMentor(
+                request.toCommand(principal))), "Create mentor profile successfully");
+    }
 
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/me")
@@ -65,12 +86,40 @@ public class MentorController {
     }
 
     @PreAuthorize("isAuthenticated()")
+    @GetMapping("/me/onboarding-status")
+    public ApiResponse<CurrentMentorOnboardingStatusResponse> getCurrentMentorOnboardingStatus(
+            @AuthenticationPrincipal AuthenticatedPrincipal principal) {
+        return apiResponseFactory.success(CurrentMentorOnboardingStatusResponse.from(
+                getCurrentMentorOnboardingStatusUseCase.getCurrentMentorOnboardingStatus(principal.getId())),
+                "Get current mentor onboarding status successfully");
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @PostMapping("/me/submission")
+    public ApiResponse<CurrentMentorOnboardingStatusResponse> submitCurrentMentorApplication(
+            @AuthenticationPrincipal AuthenticatedPrincipal principal) {
+        return apiResponseFactory.success(CurrentMentorOnboardingStatusResponse.from(
+                submitCurrentMentorApplicationUseCase.submitCurrentMentorApplication(principal.getId())),
+                "Submit current mentor application successfully");
+    }
+
+    @PreAuthorize("isAuthenticated()")
     @PutMapping("/me")
     public ApiResponse<CurrentMentorResponse> updateCurrentMentor(
             @AuthenticationPrincipal AuthenticatedPrincipal principal,
             @Valid @RequestBody UpdateCurrentMentorRequest request) {
         return apiResponseFactory.success(CurrentMentorResponse.from(updateCurrentMentorUseCase.updateCurrentMentor(
                 request.toCommand(principal))), "Update mentor profile successfully");
+    }
+
+    @PreAuthorize("isAuthenticated()")
+    @PatchMapping("/me/avatar")
+    public ApiResponse<CurrentMentorResponse> updateCurrentMentorAvatar(
+            @AuthenticationPrincipal AuthenticatedPrincipal principal,
+            @Valid @RequestBody UpdateCurrentMentorAvatarRequest request) {
+        return apiResponseFactory.success(CurrentMentorResponse.from(
+                updateCurrentMentorAvatarUseCase.updateCurrentMentorAvatar(request.toCommand(principal))),
+                "Update mentor avatar successfully");
     }
 
     @GetMapping

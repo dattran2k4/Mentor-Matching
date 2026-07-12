@@ -3,80 +3,104 @@ import { CalendarDays, CheckCircle2 } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 
-import { Badge } from '@/components/ui/badge'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { path } from '@/config/path'
 import { useCurrentUserQuery } from '@/hooks/queries/auth/useCurrentUserQuery'
 import { useCreateBookingMutation } from '@/hooks/queries/booking/useCreateBookingMutation'
+import type { BookingMeetingTypeApiResponse } from '@/types/api/booking'
 import {
   formatMeetingTypeLabel,
   formatTimeLabel,
   type MentorProfileViewModel
 } from '@/features/mentor-profile/mentor-profile.mapper'
+import type { MentorCalendarSlotViewModel } from '@/features/mentor-profile/mentor-calendar.mapper'
 import { useAuthStore } from '@/stores/auth-store'
 import type { ErrorResponse } from '@/types/api/common'
 import { cn } from '@/utils/cn'
 import { formatPrice } from '@/utils/format'
 
 interface BookingSidebarProps {
+  calendarSlots: MentorCalendarSlotViewModel[]
   className?: string
+  isCalendarLoading?: boolean
   mentor: MentorProfileViewModel
+  onSelectSlot: (slotId: string) => void
   selectedOfferingId?: string
+  selectedSlotId?: string
 }
 
-const BookingSidebar = ({ className, mentor, selectedOfferingId }: BookingSidebarProps) => {
+const BookingSidebar = ({
+  calendarSlots,
+  className,
+  isCalendarLoading = false,
+  mentor,
+  onSelectSlot,
+  selectedOfferingId,
+  selectedSlotId
+}: BookingSidebarProps) => {
   const location = useLocation()
   const navigate = useNavigate()
   const accessToken = useAuthStore((state) => state.accessToken)
   const currentUserQuery = useCurrentUserQuery()
   const createBookingMutation = useCreateBookingMutation()
-  const [selectedSlotIdState, setSelectedSlotId] = useState<string>()
 
   const activeOffering =
     mentor.offerings.find((offering) => offering.id === selectedOfferingId) ??
     mentor.offerings.find((offering) => offering.active) ??
     mentor.offerings[0]
-  const visibleSlots = mentor.specificDateAvailability.slice(0, 3)
-  const selectedSlotId = visibleSlots.some((slot) => slot.id === selectedSlotIdState)
-    ? selectedSlotIdState
-    : visibleSlots[0]?.id
-  const selectedSlot = visibleSlots.find((slot) => slot.id === selectedSlotId)
+  const availableSlots = calendarSlots.filter((slot) => slot.isBookable)
+  const selectedSlot = availableSlots.find((slot) => slot.id === selectedSlotId)
+  const nearestSlots = availableSlots.slice(0, 3)
+  const visibleSlots =
+    selectedSlot && !nearestSlots.some((slot) => slot.id === selectedSlot.id)
+      ? [selectedSlot, ...nearestSlots.slice(0, 2)]
+      : nearestSlots
   const currentUser = currentUserQuery.data
   const isLearner = currentUser?.roles.includes('LEARNER') ?? false
   const isLoggedIn = Boolean(accessToken)
   const resolvedPrice = activeOffering?.pricePerHour ?? mentor.startingPrice
+  const [selectedMeetingTypeState, setSelectedMeetingType] =
+    useState<BookingMeetingTypeApiResponse | null>(null)
+  const selectedMeetingType = mentor.bookableMeetingType ?? selectedMeetingTypeState
+  const requiresMeetingTypeSelection =
+    mentor.bookableMeetingType === null && mentor.meetingTypes.includes('HYBRID')
+
   const canSubmit = Boolean(
     isLoggedIn &&
     isLearner &&
     activeOffering &&
     selectedSlot &&
-    mentor.bookableMeetingType &&
+    selectedMeetingType &&
     !createBookingMutation.isPending
   )
   const redirectTo = `${path.login}?redirectTo=${encodeURIComponent(`${location.pathname}${location.search}`)}`
 
   const actionHint = (() => {
     if (!activeOffering) return 'Mentor chưa có môn học đang mở.'
-    if (!visibleSlots.length) return 'Mentor chưa mở lịch theo ngày cụ thể.'
-    if (!mentor.bookableMeetingType) return 'Hình thức học này chưa hỗ trợ đặt lịch trực tiếp.'
+    if (isCalendarLoading) return 'Đang tải lịch trống của mentor.'
+    if (!visibleSlots.length) return 'Mentor chưa mở lịch trong tuần này.'
+    if (!selectedMeetingType)
+      return requiresMeetingTypeSelection
+        ? 'Chọn hình thức học trước khi gửi yêu cầu đặt lịch.'
+        : 'Hình thức học này chưa hỗ trợ đặt lịch trực tiếp.'
     if (!isLoggedIn) return 'Đăng nhập bằng tài khoản học viên để gửi yêu cầu.'
     if (!isLearner && !currentUserQuery.isLoading)
       return 'Chỉ tài khoản học viên có thể gửi yêu cầu đặt lịch.'
-    return 'Bạn chỉ thanh toán sau khi mentor xác nhận yêu cầu.'
+    return null
   })()
 
   const handleCreateBooking = () => {
-    if (!activeOffering || !selectedSlot || !mentor.bookableMeetingType) return
+    if (!activeOffering || !selectedSlot || !selectedMeetingType) return
 
     createBookingMutation.mutate(
       {
         mentorId: mentor.mentorId,
         mentorSubjectId: activeOffering.mentorSubjectId,
-        bookingDate: selectedSlot.bookingDate,
+        bookingDate: selectedSlot.date,
         startTime: selectedSlot.startTime,
         endTime: selectedSlot.endTime,
-        meetingType: mentor.bookableMeetingType
+        meetingType: selectedMeetingType
       },
       {
         onSuccess: ({ bookingId }) => {
@@ -122,12 +146,23 @@ const BookingSidebar = ({ className, mentor, selectedOfferingId }: BookingSideba
         </div>
 
         <div className='mt-5 border-t border-slate-200 pt-5'>
+          <p className='text-ink text-sm font-bold'>Hình thức học</p>
+          <div className='mt-3 flex gap-2'>
+            {renderMeetingTypeOptions(mentor, selectedMeetingType, setSelectedMeetingType)}
+          </div>
+        </div>
+
+        <div className='mt-5 border-t border-slate-200 pt-5'>
           <div className='flex items-center gap-2 text-sm font-bold text-slate-900'>
             <CalendarDays size={16} />
             Lịch gần nhất
           </div>
           <div className='mt-3 space-y-2'>
-            {visibleSlots.length ? (
+            {isCalendarLoading ? (
+              <p className='rounded-xl bg-slate-50 px-3 py-3 text-xs text-slate-600'>
+                Đang tải lịch gần nhất...
+              </p>
+            ) : visibleSlots.length ? (
               visibleSlots.map((slot) => {
                 const selected = slot.id === selectedSlotId
 
@@ -141,14 +176,12 @@ const BookingSidebar = ({ className, mentor, selectedOfferingId }: BookingSideba
                         : 'border-slate-200 hover:border-slate-300'
                     )}
                     type='button'
-                    onClick={() => setSelectedSlotId(slot.id)}
+                    onClick={() => onSelectSlot(slot.id)}
                   >
                     <div className='flex justify-between gap-3'>
-                      <span className='text-ink text-sm font-bold'>{slot.dateLabel}</span>
-                      <Badge className='px-2 py-0 text-[10px]' variant='outline'>
-                        {slot.meetingTypes.map(formatMeetingTypeLabel).join(' / ') ||
-                          'Đang cập nhật'}
-                      </Badge>
+                      <span className='text-ink text-sm font-bold'>
+                        {formatCalendarDateLabel(slot.date)}
+                      </span>
                     </div>
                     <p className='text-muted mt-1 text-xs'>
                       {formatTimeLabel(slot.startTime)} - {formatTimeLabel(slot.endTime)}
@@ -176,16 +209,14 @@ const BookingSidebar = ({ className, mentor, selectedOfferingId }: BookingSideba
             <SummaryRow
               label='Hình thức'
               value={
-                mentor.bookableMeetingType
-                  ? formatMeetingTypeLabel(mentor.bookableMeetingType)
-                  : 'Chưa hỗ trợ'
+                selectedMeetingType ? formatMeetingTypeLabel(selectedMeetingType) : 'Chưa chọn'
               }
             />
             <SummaryRow
               label='Khung giờ'
               value={
                 selectedSlot
-                  ? `${selectedSlot.dateLabel}, ${formatTimeLabel(selectedSlot.startTime)}-${formatTimeLabel(selectedSlot.endTime)}`
+                  ? `${formatCalendarDateLabel(selectedSlot.date)}, ${formatTimeLabel(selectedSlot.startTime)}-${formatTimeLabel(selectedSlot.endTime)}`
                   : 'Chưa chọn'
               }
             />
@@ -221,13 +252,75 @@ const BookingSidebar = ({ className, mentor, selectedOfferingId }: BookingSideba
           </Button>
         )}
 
-        <p className='text-muted mt-3 flex items-start gap-2 text-xs leading-relaxed'>
-          <CheckCircle2 className='mt-0.5 shrink-0 text-emerald-600' size={14} />
-          {actionHint}
-        </p>
+        {actionHint ? (
+          <p className='text-muted mt-3 flex items-start gap-2 text-xs leading-relaxed'>
+            <CheckCircle2 className='mt-0.5 shrink-0 text-emerald-600' size={14} />
+            {actionHint}
+          </p>
+        ) : null}
       </CardContent>
     </Card>
   )
+}
+
+function formatCalendarDateLabel(value: string) {
+  const date = new Date(`${value}T00:00:00`)
+
+  return Number.isNaN(date.getTime())
+    ? value
+    : new Intl.DateTimeFormat('vi-VN', {
+        weekday: 'short',
+        day: '2-digit',
+        month: '2-digit'
+      }).format(date)
+}
+
+function renderMeetingTypeOptions(
+  mentor: MentorProfileViewModel,
+  selectedMeetingType: BookingMeetingTypeApiResponse | null,
+  onSelectMeetingType: (meetingType: BookingMeetingTypeApiResponse) => void
+) {
+  const selectableMeetingTypes = getSelectableMeetingTypes(mentor)
+
+  if (!selectableMeetingTypes.length) {
+    return (
+      <p className='rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600'>
+        Mentor chưa mở hình thức học để đặt lịch trực tiếp.
+      </p>
+    )
+  }
+
+  return selectableMeetingTypes.map((meetingType) => {
+    const selected = selectedMeetingType === meetingType
+    const isFixedOption =
+      mentor.bookableMeetingType !== null && mentor.bookableMeetingType === meetingType
+
+    return (
+      <button
+        key={meetingType}
+        className={cn(
+          'flex-1 rounded-xl border px-3 py-2 text-sm font-semibold transition',
+          selected
+            ? 'border-blue-400 bg-blue-50 text-blue-700 ring-2 ring-blue-100'
+            : 'border-slate-200 bg-white text-slate-700 hover:border-slate-300',
+          isFixedOption && 'cursor-default'
+        )}
+        type='button'
+        onClick={() => onSelectMeetingType(meetingType)}
+      >
+        {formatMeetingTypeLabel(meetingType)}
+      </button>
+    )
+  })
+}
+
+function getSelectableMeetingTypes(
+  mentor: MentorProfileViewModel
+): BookingMeetingTypeApiResponse[] {
+  if (mentor.bookableMeetingType) return [mentor.bookableMeetingType]
+  if (mentor.meetingTypes.includes('HYBRID')) return ['ONLINE', 'OFFLINE']
+
+  return []
 }
 
 function SummaryRow({ label, value }: { label: string; value: string }) {

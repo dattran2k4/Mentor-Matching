@@ -57,7 +57,14 @@ class MentorQueryServiceTest {
                 "Concept-first with practice", 6, "Math Teacher", "Mentor Matching", "HCMUS", "Mathematics",
                 MeetingType.HYBRID, MentorApprovalStatus.APPROVED, "Approved", MentorVerificationStatus.VERIFIED,
                 null, LocalDateTime.parse("2026-06-01T10:15:30"), LocalDateTime.parse("2026-06-05T12:00:00"));
-        when(mentorReadRepositoryPort.findCurrentMentorByUserId(20L)).thenReturn(Optional.of(expected));
+        MentorProfile mentorProfile = MentorProfile.restore(new MentorProfileRestoreData(10L, 20L,
+                "https://example.com/avatar.jpg", Gender.FEMALE, 1L, 3L, "Experienced Math Mentor",
+                "Helping learners build confidence", "Concept-first with practice", 6, "Math Teacher",
+                "Mentor Matching", "HCMUS", "Mathematics", MeetingType.HYBRID, MentorApprovalStatus.APPROVED,
+                "Approved", null, null, LocalDateTime.parse("2026-06-01T10:15:30"),
+                LocalDateTime.parse("2026-06-05T12:00:00")));
+        when(mentorProfileRepositoryPort.findByUserId(20L)).thenReturn(Optional.of(mentorProfile));
+        when(mentorReadRepositoryPort.findCurrentMentorByMentorId(10L)).thenReturn(Optional.of(expected));
 
         CurrentMentorDetails actual = mentorQueryService.getCurrentMentor(20L);
 
@@ -66,7 +73,7 @@ class MentorQueryServiceTest {
 
     @Test
     void getCurrentMentorThrowsWhenMentorProfileDoesNotExist() {
-        when(mentorReadRepositoryPort.findCurrentMentorByUserId(99L)).thenReturn(Optional.empty());
+        when(mentorProfileRepositoryPort.findByUserId(99L)).thenReturn(Optional.empty());
 
         ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
                 () -> mentorQueryService.getCurrentMentor(99L));

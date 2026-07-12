@@ -1,13 +1,13 @@
 import { Link } from 'react-router'
 import {
   ArrowRight,
+  Bell,
   BookMarked,
   Calendar,
   CheckCircle2,
   ChevronRight,
   Clock3,
   CreditCard,
-  MessageSquare,
   ReceiptText,
   Sparkles,
   UserRound,
@@ -33,6 +33,7 @@ import {
   TableRow
 } from '@/components/ui/table'
 import { path } from '@/config/path'
+import { BOOKING_STATUS_CONFIG } from '@/constants/booking-status'
 import { useCurrentUserQuery } from '@/hooks/queries/auth/useCurrentUserQuery'
 import { useCurrentUserBookingsQuery } from '@/hooks/queries/booking/useCurrentUserBookingsQuery'
 import { useCurrentLearnerProfileQuery } from '@/hooks/queries/user/useCurrentLearnerProfileQuery'
@@ -288,7 +289,7 @@ export default function UserDashboardPage() {
           paymentDueBookings.length > 0
             ? `${paymentDueBookings.length} khoản học phí đang chờ bạn hoàn tất.`
             : 'Xem lại tình trạng thanh toán và các khoản học phí gần đây.',
-        href: path.user.bookings,
+        href: path.user.payments,
         icon: Wallet
       },
       {
@@ -349,7 +350,7 @@ export default function UserDashboardPage() {
       return {
         title: 'Thông báo hệ thống',
         description: `Bạn đang có ${paymentDueBookings.length} booking chờ thanh toán. Hãy vào lịch học để giữ chỗ với mentor đúng hạn.`,
-        icon: MessageSquare,
+        icon: Bell,
         tone: 'warning' as const
       }
     }
@@ -387,7 +388,7 @@ export default function UserDashboardPage() {
     return {
       title: 'Thông báo hệ thống',
       description: 'Mọi thông tin quan trọng về lịch học và thanh toán sẽ được cập nhật tại đây.',
-      icon: MessageSquare,
+      icon: Bell,
       tone: 'info' as const
     }
   }, [
@@ -428,9 +429,9 @@ export default function UserDashboardPage() {
 
   const nextBookingStatusLabel =
     nextBooking && needsPayment(nextBooking)
-      ? 'Đang chờ thanh toán'
+      ? BOOKING_STATUS_CONFIG.PENDING.label
       : nextBooking?.status === 'CONFIRMED'
-        ? 'Đã xác nhận'
+        ? BOOKING_STATUS_CONFIG.CONFIRMED.label
         : 'Cập nhật lịch học'
 
   return (
@@ -597,11 +598,7 @@ export default function UserDashboardPage() {
             )}
           </WorkspacePanel>
 
-          <WorkspacePanel
-            contentClassName='space-y-4'
-            title='Tóm tắt tuần này'
-            description={`Xin chào ${currentUserQuery.data.fullName}, đây là những điều bạn nên chú ý trong tuần này.`}
-          >
+          <WorkspacePanel contentClassName='space-y-4' title='Tóm tắt tuần này'>
             {summaryItems.map((item) => (
               <SummaryStatCard {...item} key={item.label} />
             ))}

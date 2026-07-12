@@ -85,6 +85,7 @@ public class AuthController {
     @PostMapping("/logout")
     public ApiResponse<Void> logout(@CookieValue(name = REFRESH_TOKEN_COOKIE_NAME, required = false) String refreshToken,
                                     HttpServletResponse response) {
+        log.info("Request for logout, refreshToken={}", refreshToken);
         logoutUseCase.logout(new LogoutCommand(refreshToken));
         clearRefreshTokenCookie(response);
         return apiResponseFactory.success(null, "Logout successfully");

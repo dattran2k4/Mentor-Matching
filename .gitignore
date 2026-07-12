@@ -42,3 +42,7 @@ codex-skills/
 *.docx
 report_tools/
 *.png
+#doc
+*.docx
+report_tools/
+*.png

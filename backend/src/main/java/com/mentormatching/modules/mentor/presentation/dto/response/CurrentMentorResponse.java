@@ -7,7 +7,7 @@ import com.mentormatching.modules.mentor.domain.Gender;
 import com.mentormatching.modules.mentor.domain.MeetingType;
 import com.mentormatching.modules.mentor.domain.MentorApprovalStatus;
 
-public record CurrentMentorResponse(Long id, Long userId, String fullName, String avatarUrl, Gender gender,
+public record CurrentMentorResponse(Long id, Long userId, String fullName, String avatarUrl, Long avatarMediaId, Gender gender,
                                     MentorDetailResponse.LocationResponse hometown,
                                     MentorDetailResponse.LocationResponse currentLocation, String headline,
                                     String introduction, String teachingStyle, Integer experienceYears,
@@ -18,7 +18,7 @@ public record CurrentMentorResponse(Long id, Long userId, String fullName, Strin
 
     public static CurrentMentorResponse from(CurrentMentorDetails mentor) {
         return new CurrentMentorResponse(mentor.id(), mentor.userId(), mentor.fullName(), mentor.avatarUrl(),
-                mentor.gender(),
+                mentor.avatarMediaId(), mentor.gender(),
                 new MentorDetailResponse.LocationResponse(mentor.hometownCityId(), mentor.hometownCityName(), null,
                         null),
                 new MentorDetailResponse.LocationResponse(mentor.currentCityId(), mentor.currentCityName(),

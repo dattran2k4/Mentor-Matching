@@ -5,6 +5,7 @@ export default [
   layout('layouts/main-layout.tsx', [
     index('routes/home.tsx'),
     route('discover', 'routes/discover.tsx'),
+    route('become-mentor', 'routes/become-mentor.tsx'),
     route('mentor-profile/:id', 'routes/mentor-profile.tsx'),
     route('payment/success', 'routes/payment/success.tsx'),
     route('payment/cancel', 'routes/payment/cancel.tsx')
@@ -15,8 +16,7 @@ export default [
     layout('layouts/user-layout.tsx', [
       index('routes/user/dashboard.tsx'),
       route('bookings', 'routes/user/bookings.tsx'),
-      route('favorites', 'routes/user/favorites.tsx'),
-      route('messages', 'routes/user/messages.tsx'),
+      route('payments', 'routes/user/payments.tsx'),
       route('profile', 'routes/user/profile.tsx')
     ])
   ]),

@@ -10,6 +10,8 @@ export type SortDirection = 'asc' | 'desc'
 
 export type SortOrder = SortDirection
 
+export type Gender = 'MALE' | 'FEMALE' | 'OTHER'
+
 export type PaginationParams = {
   page?: number
   size?: number

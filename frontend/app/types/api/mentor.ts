@@ -1,16 +1,19 @@
-import type { PageQueryParams, PageResponse } from '@/types/api/common'
+import type { Gender, PageQueryParams, PageResponse } from '@/types/api/common'
 
-export type MentorGenderApiResponse = 'MALE' | 'FEMALE' | 'OTHER'
+export type MentorMeetingType = 'ONLINE' | 'OFFLINE' | 'HYBRID'
 
-export type MentorMeetingTypeApiResponse = 'ONLINE' | 'OFFLINE' | 'HYBRID'
-
-export type MentorApprovalStatusApiResponse = 'PENDING' | 'APPROVED' | 'REJECTED' | 'SUSPENDED'
+export type MentorApprovalStatusApiResponse =
+  | 'DRAFT'
+  | 'PENDING'
+  | 'APPROVED'
+  | 'REJECTED'
+  | 'SUSPENDED'
 
 export type MentorVerificationStatusApiResponse = 'UNVERIFIED' | 'PENDING' | 'VERIFIED' | 'REJECTED'
 
 export type MentorProficiencyLevelApiResponse = 'BASIC' | 'INTERMEDIATE' | 'ADVANCED' | 'EXPERT'
 
-export type MentorListSortByApiParam =
+export type MentorListSortBy =
   | 'id'
   | 'fullName'
   | 'gender'
@@ -19,7 +22,7 @@ export type MentorListSortByApiParam =
   | 'createdAt'
   | 'minPrice'
 
-export type AdminMentorListSortByApiParam = MentorListSortByApiParam | 'approvalStatus'
+export type AdminMentorListSortBy = MentorListSortBy | 'approvalStatus'
 
 export type MentorAchievementTypeApiResponse =
   | 'AWARD'
@@ -47,7 +50,8 @@ export type CurrentMentorApiResponse = {
   userId: number
   fullName: string
   avatarUrl: string
-  gender: MentorGenderApiResponse | null
+  avatarMediaId: number | null
+  gender: Gender | null
   hometown: MentorLocationApiResponse
   currentLocation: MentorLocationApiResponse
   headline: string | null
@@ -58,7 +62,7 @@ export type CurrentMentorApiResponse = {
   workplace: string | null
   education: string | null
   major: string | null
-  meetingType: MentorMeetingTypeApiResponse | null
+  meetingType: MentorMeetingType | null
   approvalStatus: MentorApprovalStatusApiResponse
   approvalNote: string | null
   verificationStatus: MentorVerificationStatusApiResponse
@@ -68,8 +72,7 @@ export type CurrentMentorApiResponse = {
 }
 
 export type UpdateCurrentMentorRequest = {
-  avatarUrl: string
-  gender?: MentorGenderApiResponse | null
+  gender?: Gender | null
   hometownCityId?: number | null
   currentDistrictId?: number | null
   headline?: string | null
@@ -80,7 +83,24 @@ export type UpdateCurrentMentorRequest = {
   workplace?: string | null
   education?: string | null
   major?: string | null
-  meetingType?: MentorMeetingTypeApiResponse | null
+  meetingType?: MentorMeetingType | null
+}
+
+export type UpdateCurrentMentorAvatarRequest = {
+  avatarMediaId: number
+}
+
+export type CurrentMentorOnboardingStatusApiResponse = {
+  mentorProfileCreated: boolean
+  profileDetailsCompleted: boolean
+  verificationSubmitted: boolean
+  verificationStatus: MentorVerificationStatusApiResponse | null
+  subjectCount: number
+  personalityCount: number
+  highlightCount: number
+  achievementCount: number
+  approvalStatus: MentorApprovalStatusApiResponse | null
+  onboardingCompleted: boolean
 }
 
 export type MentorListItemApiResponse = {
@@ -88,14 +108,14 @@ export type MentorListItemApiResponse = {
   userId: number
   fullName: string
   avatarUrl: string
-  gender: MentorGenderApiResponse | null
+  gender: Gender | null
   headline: string | null
   experienceYears: number | null
   currentPosition: string | null
   workplace: string | null
   education: string | null
   major: string | null
-  meetingType: MentorMeetingTypeApiResponse | null
+  meetingType: MentorMeetingType | null
   minPrice: number | null
   createdAt: string | null
 }
@@ -105,7 +125,7 @@ export type MentorDetailApiResponse = {
   userId: number
   fullName: string
   avatarUrl: string
-  gender: MentorGenderApiResponse | null
+  gender: Gender | null
   hometown: MentorLocationApiResponse
   currentLocation: MentorLocationApiResponse
   headline: string | null
@@ -116,17 +136,17 @@ export type MentorDetailApiResponse = {
   workplace: string | null
   education: string | null
   major: string | null
-  meetingType: MentorMeetingTypeApiResponse | null
+  meetingType: MentorMeetingType | null
   createdAt: string | null
   updatedAt: string | null
 }
 
-export type GetMentorsQueryParams = PageQueryParams<
-  MentorListSortByApiParam,
+export type MentorsQueryParams = PageQueryParams<
+  MentorListSortBy,
   {
     search?: string
-    gender?: MentorGenderApiResponse
-    meetingType?: MentorMeetingTypeApiResponse
+    gender?: Gender
+    meetingType?: MentorMeetingType
     cityId?: number
     districtId?: number
     subjectId?: number
@@ -203,8 +223,11 @@ export type CurrentMentorVerificationApiResponse = {
   fullName: string | null
   idCardNumber: string | null
   idCardFrontUrl: string | null
+  idCardFrontMediaId: number | null
   idCardBackUrl: string | null
+  idCardBackMediaId: number | null
   selfieWithIdUrl: string | null
+  selfieWithIdMediaId: number | null
   verificationStatus: MentorVerificationStatusApiResponse
   verifiedBy: number | null
   verifiedAt: string | null
@@ -216,9 +239,9 @@ export type CurrentMentorVerificationApiResponse = {
 export type UpsertCurrentMentorVerificationRequest = {
   fullName: string
   idCardNumber?: string | null
-  idCardFrontUrl: string
-  idCardBackUrl: string
-  selfieWithIdUrl?: string | null
+  idCardFrontMediaId: number
+  idCardBackMediaId: number
+  selfieWithIdMediaId?: number | null
 }
 
 export type MentorAvailabilityDetailApiResponse = {
@@ -230,19 +253,31 @@ export type MentorAvailabilityDetailApiResponse = {
   endTime: string
 }
 
+export type SaveCurrentMentorAvailabilityRequest = {
+  availabilityType: MentorAvailabilityTypeApiResponse
+  dayOfWeek?: number | null
+  availableDate?: string | null
+  startTime: string
+  endTime: string
+}
+
+export type CreateCurrentMentorAvailabilityApiResponse = {
+  availabilityId: number
+}
+
 export type AdminMentorListItemApiResponse = {
   id: number
   userId: number
   fullName: string
   avatarUrl: string
-  gender: MentorGenderApiResponse | null
+  gender: Gender | null
   headline: string | null
   experienceYears: number | null
   currentPosition: string | null
   workplace: string | null
   education: string | null
   major: string | null
-  meetingType: MentorMeetingTypeApiResponse | null
+  meetingType: MentorMeetingType | null
   approvalStatus: MentorApprovalStatusApiResponse
   minPrice: number | null
   createdAt: string | null
@@ -255,7 +290,7 @@ export type AdminMentorDetailApiResponse = {
   email: string
   phone: string
   avatarUrl: string
-  gender: MentorGenderApiResponse | null
+  gender: Gender | null
   hometown: MentorLocationApiResponse
   currentLocation: MentorLocationApiResponse
   headline: string | null
@@ -266,7 +301,7 @@ export type AdminMentorDetailApiResponse = {
   workplace: string | null
   education: string | null
   major: string | null
-  meetingType: MentorMeetingTypeApiResponse | null
+  meetingType: MentorMeetingType | null
   approvalStatus: MentorApprovalStatusApiResponse
   approvalNote: string | null
   createdAt: string | null
@@ -279,11 +314,11 @@ export type ReviewMentorApprovalRequest = {
 }
 
 export type GetAdminMentorsQueryParams = PageQueryParams<
-  AdminMentorListSortByApiParam,
+  AdminMentorListSortBy,
   {
     search?: string
-    gender?: MentorGenderApiResponse
-    meetingType?: MentorMeetingTypeApiResponse
+    gender?: Gender
+    meetingType?: MentorMeetingType
     cityId?: number
     districtId?: number
     subjectId?: number

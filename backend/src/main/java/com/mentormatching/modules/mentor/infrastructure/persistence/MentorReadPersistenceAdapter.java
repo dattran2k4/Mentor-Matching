@@ -133,8 +133,8 @@ public class MentorReadPersistenceAdapter implements MentorReadRepositoryPort {
     }
 
     @Override
-    public Optional<CurrentMentorDetails> findCurrentMentorByUserId(Long userId) {
-        return mentorProfileJpaRepository.findCurrentMentorDetailByUserId(userId)
+    public Optional<CurrentMentorDetails> findCurrentMentorByMentorId(Long mentorId) {
+        return mentorProfileJpaRepository.findCurrentMentorDetailByMentorId(mentorId)
                 .map(this::toCurrentMentorDetails);
     }
 
@@ -262,7 +262,7 @@ public class MentorReadPersistenceAdapter implements MentorReadRepositoryPort {
 
     private CurrentMentorDetails toCurrentMentorDetails(CurrentMentorDetailsProjection projection) {
         return new CurrentMentorDetails(projection.getId(), projection.getUserId(), projection.getFullName(),
-                projection.getAvatarUrl(), projection.getGender(), projection.getHometownCityId(),
+                projection.getAvatarUrl(), projection.getAvatarMediaId(), projection.getGender(), projection.getHometownCityId(),
                 projection.getHometownCityName(), projection.getCurrentCityId(), projection.getCurrentCityName(),
                 projection.getCurrentDistrictId(), projection.getCurrentDistrictName(), projection.getHeadline(),
                 projection.getIntroduction(), projection.getTeachingStyle(), projection.getExperienceYears(),

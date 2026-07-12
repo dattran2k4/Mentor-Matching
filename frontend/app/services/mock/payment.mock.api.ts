@@ -4,8 +4,12 @@ import { mockBookingApi } from '@/services/mock/booking.mock.api'
 import type { ApiResponse } from '@/types/api/common'
 import type {
   CreatePaymentRequest,
+  GetMentorPaymentsQueryParams,
+  GetMyPaymentsQueryParams,
   PaymentApiResponse,
-  PaymentDetailApiResponse
+  PaymentDetailApiResponse,
+  PaymentListItemApiResponse,
+  PaymentListPageApiResponse
 } from '@/types/api/payment'
 
 const delay = (ms = 200) => new Promise((resolve) => setTimeout(resolve, ms))
@@ -43,6 +47,25 @@ function requireMockSession() {
   }
 }
 
+function paginate(
+  items: PaymentListItemApiResponse[],
+  page = 1,
+  size = 10
+): PaymentListPageApiResponse {
+  const pageSize = size
+  const totalItems = items.length
+  const totalPages = Math.max(1, Math.ceil(totalItems / pageSize))
+  const startIndex = (page - 1) * pageSize
+
+  return {
+    page,
+    pageSize,
+    totalPages,
+    totalItems,
+    data: items.slice(startIndex, startIndex + pageSize)
+  }
+}
+
 export const mockPaymentApi = {
   async createPayment(payload: CreatePaymentRequest): Promise<ApiResponse<PaymentApiResponse>> {
     await delay()
@@ -63,6 +86,66 @@ export const mockPaymentApi = {
         expiresAt: new Date(Date.now() + 30 * 60 * 1000).toISOString()
       },
       'Create payment successfully'
+    )
+  },
+
+  async getMyPayments(
+    params?: GetMyPaymentsQueryParams
+  ): Promise<ApiResponse<PaymentListPageApiResponse>> {
+    await delay()
+
+    const bookingsResponse = await mockBookingApi.getMyBookings({ page: 1, size: 100 })
+    const payments = bookingsResponse.data.data.map<PaymentListItemApiResponse>((booking) => {
+      const status = booking.status === 'PENDING' ? 'PENDING' : 'PAID'
+
+      return {
+        id: booking.id,
+        bookingId: booking.id,
+        amount: booking.totalAmount,
+        status,
+        paidAt: status === 'PAID' ? booking.updatedAt : null,
+        createdAt: booking.createdAt
+      }
+    })
+    const filtered = params?.status
+      ? payments.filter((payment) => payment.status === params.status)
+      : payments
+
+    return buildSuccessResponse(
+      paginate(filtered, params?.page ?? 1, params?.size ?? 10),
+      'Get my payments successfully'
+    )
+  },
+
+  async getMentorPayments(
+    params?: GetMentorPaymentsQueryParams
+  ): Promise<ApiResponse<PaymentListPageApiResponse>> {
+    await delay()
+
+    const { email } = requireMockSession()
+    const mentorId = email === 'mentor@test.com' ? 101 : 102
+    const bookingsResponse = await mockBookingApi.getMentorBookings({ page: 1, size: 100 })
+    const payments = bookingsResponse.data.data
+      .filter((booking) => booking.mentorId === mentorId)
+      .map<PaymentListItemApiResponse>((booking) => {
+        const status = booking.status === 'PENDING' ? 'PENDING' : 'PAID'
+
+        return {
+          id: booking.id,
+          bookingId: booking.id,
+          amount: booking.totalAmount,
+          status,
+          paidAt: status === 'PAID' ? booking.updatedAt : null,
+          createdAt: booking.createdAt
+        }
+      })
+    const filtered = params?.status
+      ? payments.filter((payment) => payment.status === params.status)
+      : payments
+
+    return buildSuccessResponse(
+      paginate(filtered, params?.page ?? 1, params?.size ?? 10),
+      'Get mentor payments successfully'
     )
   },
 

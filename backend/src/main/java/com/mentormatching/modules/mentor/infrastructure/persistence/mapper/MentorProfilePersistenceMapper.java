@@ -11,7 +11,7 @@ public class MentorProfilePersistenceMapper {
 
     public MentorProfile toDomain(MentorProfileJpaEntity entity) {
         return MentorProfile.restore(new MentorProfileRestoreData(entity.getId(), entity.getUserId(),
-                entity.getAvatarUrl(), entity.getGender(), entity.getHometownCityId(),
+                entity.getAvatarUrl(), entity.getAvatarMediaId(), entity.getGender(), entity.getHometownCityId(),
                 entity.getCurrentDistrictId(), entity.getHeadline(), entity.getIntroduction(),
                 entity.getTeachingStyle(), entity.getExperienceYears(), entity.getCurrentPosition(),
                 entity.getWorkplace(), entity.getEducation(), entity.getMajor(), entity.getMeetingType(),
@@ -24,6 +24,7 @@ public class MentorProfilePersistenceMapper {
                 .id(mentorProfile.getId())
                 .userId(mentorProfile.getUserId())
                 .avatarUrl(mentorProfile.getAvatarUrl())
+                .avatarMediaId(mentorProfile.getAvatarMediaId())
                 .gender(mentorProfile.getGender())
                 .hometownCityId(mentorProfile.getHometownCityId())
                 .currentDistrictId(mentorProfile.getCurrentDistrictId())

@@ -504,7 +504,6 @@ export default function MentorProfilePage() {
 
     updateCurrentMentorMutation.mutate(
       {
-        avatarUrl: currentMentor.avatarUrl,
         gender: currentMentor.gender,
         hometownCityId: currentMentor.hometown.cityId,
         currentDistrictId: currentMentor.currentLocation.districtId,

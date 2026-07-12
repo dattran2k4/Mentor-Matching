@@ -2,6 +2,7 @@ import type {
   CatalogCategoryApiResponse,
   CatalogGradeApiResponse,
   CatalogOptionsApiResponse,
+  CatalogSubjectGradeApiResponse,
   CatalogSubjectApiResponse
 } from '@/types/api/catalog'
 import type { ApiResponse } from '@/types/api/common'
@@ -107,10 +108,19 @@ const mockGrades: CatalogGradeApiResponse[] = [
   { id: 12, name: 'Lop 12', levelGroup: 'HIGH_SCHOOL' }
 ]
 
+const mockSubjectGrades: CatalogSubjectGradeApiResponse[] = mockSubjects.flatMap((subject) =>
+  mockGrades.map((grade) => ({
+    gradeId: grade.id,
+    id: subject.id * 100 + grade.id,
+    subjectId: subject.id
+  }))
+)
+
 const mockCatalogOptions: CatalogOptionsApiResponse = {
   categories: mockCategories,
-  subjects: mockSubjects,
-  grades: mockGrades
+  grades: mockGrades,
+  subjectGrades: mockSubjectGrades,
+  subjects: mockSubjects
 }
 
 export const mockCatalogApi = {

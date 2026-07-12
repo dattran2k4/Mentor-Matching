@@ -9,6 +9,8 @@ public interface SubjectGradeRepositoryPort {
 
     SubjectGrade save(SubjectGrade subjectGrade);
 
+    List<SubjectGrade> findAll();
+
     Optional<SubjectGrade> findById(Long id);
 
     List<SubjectGrade> findBySubjectId(Long subjectId);

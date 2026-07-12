@@ -1,27 +1,31 @@
 import { useAuthStore } from '@/stores/auth-store'
 import { getMockEmailFromToken, mockUsers } from '@/services/mock/auth.mock.api'
 import type { ApiResponse, PageResponse } from '@/types/api/common'
+import type { MentorCalendarApiResponse } from '@/types/api/mentor-calendar'
 import type {
   AdminMentorDetailApiResponse,
   AdminMentorListItemApiResponse,
   AdminMentorVerificationDetailApiResponse,
   AdminMentorVerificationListItemApiResponse,
   CurrentMentorApiResponse,
+  CurrentMentorOnboardingStatusApiResponse,
   CurrentMentorTraitsApiResponse,
   CurrentMentorVerificationApiResponse,
   GetAdminMentorVerificationsQueryParams,
   GetAdminMentorsQueryParams,
-  GetMentorsQueryParams,
+  MentorsQueryParams,
   MentorAchievementDetailApiResponse,
   MentorAvailabilityDetailApiResponse,
   MentorDetailApiResponse,
-  MentorMeetingTypeApiResponse,
+  MentorMeetingType,
   MentorOptionDetailApiResponse,
   MentorSubjectDetailApiResponse,
   MentorTraitsDetailApiResponse,
   ReviewMentorApprovalRequest,
   ReviewMentorVerificationRequest,
   SaveCurrentMentorAchievementRequest,
+  SaveCurrentMentorAvailabilityRequest,
+  UpdateCurrentMentorAvatarRequest,
   UpdateCurrentMentorRequest,
   UpdateCurrentMentorTraitsRequest,
   UpsertCurrentMentorSubjectRequest,
@@ -298,6 +302,7 @@ let currentMentorState: CurrentMentorApiResponse = {
   userId: 2,
   fullName: 'Mentor Test',
   avatarUrl: 'https://example.com/mock-mentor-1.jpg',
+  avatarMediaId: 9901,
   gender: 'MALE',
   hometown: { cityId: 1, cityName: 'Ho Chi Minh', districtId: null, districtName: null },
   currentLocation: { cityId: 1, cityName: 'Ho Chi Minh', districtId: 103, districtName: 'Thu Duc' },
@@ -329,8 +334,11 @@ let currentMentorVerificationState: CurrentMentorVerificationApiResponse = {
   fullName: 'Mentor Test',
   idCardNumber: '079123456789',
   idCardFrontUrl: 'https://example.com/id-front.jpg',
+  idCardFrontMediaId: 9902,
   idCardBackUrl: 'https://example.com/id-back.jpg',
+  idCardBackMediaId: 9903,
   selfieWithIdUrl: 'https://example.com/selfie.jpg',
+  selfieWithIdMediaId: 9904,
   verificationStatus: 'VERIFIED',
   verifiedBy: 3,
   verifiedAt: '2026-06-01T09:00:00',
@@ -369,20 +377,161 @@ function filterMentorItemsBySearch<T extends { fullName: string; headline: strin
   })
 }
 
-function filterByMeetingType<T extends { meetingType: MentorMeetingTypeApiResponse | null }>(
+function normalizeDate(value: string) {
+  return new Date(`${value}T00:00:00`)
+}
+
+function toIsoDate(value: Date) {
+  const year = value.getFullYear()
+  const month = `${value.getMonth() + 1}`.padStart(2, '0')
+  const day = `${value.getDate()}`.padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
+
+function buildMentorCalendar(
+  mentorId: number,
+  from: string,
+  to: string
+): MentorCalendarApiResponse {
+  const fromDate = normalizeDate(from)
+  const toDate = normalizeDate(to)
+  const availabilities = mentorAvailabilitiesByMentorId[mentorId] ?? []
+  const dates: MentorCalendarApiResponse['dates'] = []
+
+  for (
+    let cursor = new Date(fromDate);
+    cursor.getTime() <= toDate.getTime();
+    cursor.setDate(cursor.getDate() + 1)
+  ) {
+    const currentDate = new Date(cursor)
+    const isoDate = toIsoDate(currentDate)
+    const dayOfWeek = currentDate.getDay() === 0 ? 7 : currentDate.getDay()
+
+    const availableWindows = availabilities
+      .filter((item) => {
+        if (item.availabilityType === 'SPECIFIC_DATE') return item.availableDate === isoDate
+        return item.availabilityType === 'RECURRING' && item.dayOfWeek === dayOfWeek
+      })
+      .sort((left, right) => left.startTime.localeCompare(right.startTime))
+      .map((item) => ({
+        startTime: item.startTime,
+        endTime: item.endTime
+      }))
+
+    dates.push({
+      date: isoDate,
+      availableWindows
+    })
+  }
+
+  return {
+    mentorId,
+    from,
+    to,
+    dates
+  }
+}
+
+function normalizeAvailabilityPayload(
+  payload: SaveCurrentMentorAvailabilityRequest
+): MentorAvailabilityDetailApiResponse {
+  return {
+    id: 0,
+    availabilityType: payload.availabilityType,
+    dayOfWeek: payload.availabilityType === 'RECURRING' ? (payload.dayOfWeek ?? null) : null,
+    availableDate:
+      payload.availabilityType === 'SPECIFIC_DATE' ? (payload.availableDate ?? null) : null,
+    startTime: payload.startTime,
+    endTime: payload.endTime
+  }
+}
+
+function filterByMeetingType<T extends { meetingType: MentorMeetingType | null }>(
   items: T[],
-  meetingType?: MentorMeetingTypeApiResponse
+  meetingType?: MentorMeetingType
 ) {
   if (!meetingType) return items
   return items.filter((item) => item.meetingType === meetingType)
 }
 
+function getCurrentMentorOnboardingStatus(): CurrentMentorOnboardingStatusApiResponse {
+  const subjects = mentorSubjectsByMentorId[currentMentorState.id] ?? []
+  const achievements = mentorAchievementsByMentorId[currentMentorState.id] ?? []
+
+  return {
+    mentorProfileCreated: Boolean(currentMentorState.id),
+    profileDetailsCompleted: Boolean(
+      currentMentorState.avatarUrl &&
+      currentMentorState.headline &&
+      currentMentorState.introduction &&
+      currentMentorState.teachingStyle
+    ),
+    verificationSubmitted: currentMentorVerificationState.verificationStatus !== 'UNVERIFIED',
+    verificationStatus: currentMentorVerificationState.verificationStatus,
+    subjectCount: subjects.length,
+    personalityCount: currentMentorTraitsState.personalityOptionIds.length,
+    highlightCount: currentMentorTraitsState.highlightOptionIds.length,
+    achievementCount: achievements.length,
+    approvalStatus: currentMentorState.approvalStatus,
+    onboardingCompleted:
+      currentMentorState.approvalStatus === 'APPROVED' &&
+      currentMentorVerificationState.verificationStatus === 'VERIFIED'
+  }
+}
+
 export const mockMentorApi = {
+  async createCurrentMentor(
+    payload: UpdateCurrentMentorRequest
+  ): Promise<ApiResponse<CurrentMentorApiResponse>> {
+    await delay()
+    requireMockSession()
+
+    currentMentorState = {
+      ...currentMentorState,
+      ...payload,
+      approvalStatus: 'DRAFT',
+      updatedAt: new Date().toISOString()
+    }
+
+    return buildCreatedResponse(currentMentorState, 'Create mentor profile successfully')
+  },
+
   async getCurrentMentor(): Promise<ApiResponse<CurrentMentorApiResponse>> {
     await delay()
     requireMockSession()
 
     return buildSuccessResponse(currentMentorState, 'Get current mentor profile successfully')
+  },
+
+  async getCurrentMentorOnboardingStatus(): Promise<
+    ApiResponse<CurrentMentorOnboardingStatusApiResponse>
+  > {
+    await delay()
+    requireMockSession()
+
+    return buildSuccessResponse(
+      getCurrentMentorOnboardingStatus(),
+      'Get current mentor onboarding status successfully'
+    )
+  },
+
+  async submitCurrentMentorApplication(): Promise<
+    ApiResponse<CurrentMentorOnboardingStatusApiResponse>
+  > {
+    await delay()
+    requireMockSession()
+
+    currentMentorState = {
+      ...currentMentorState,
+      approvalStatus: 'PENDING',
+      updatedAt: new Date().toISOString()
+    }
+
+    return buildSuccessResponse(
+      getCurrentMentorOnboardingStatus(),
+      'Submit current mentor application successfully'
+    )
   },
 
   async updateCurrentMentor(
@@ -408,8 +557,24 @@ export const mockMentorApi = {
     return buildSuccessResponse(currentMentorState, 'Update mentor profile successfully')
   },
 
+  async updateCurrentMentorAvatar(
+    payload: UpdateCurrentMentorAvatarRequest
+  ): Promise<ApiResponse<CurrentMentorApiResponse>> {
+    await delay()
+    requireMockSession()
+
+    currentMentorState = {
+      ...currentMentorState,
+      avatarMediaId: payload.avatarMediaId,
+      avatarUrl: `https://example.com/media/${payload.avatarMediaId}.jpg`,
+      updatedAt: new Date().toISOString()
+    }
+
+    return buildSuccessResponse(currentMentorState, 'Update mentor avatar successfully')
+  },
+
   async getMentors(
-    params?: GetMentorsQueryParams
+    params?: MentorsQueryParams
   ): Promise<ApiResponse<PageResponse<AdminMentorListItemApiResponse>>> {
     await delay()
 
@@ -472,6 +637,17 @@ export const mockMentorApi = {
     mentorSubjectsByMentorId[currentMentorState.id] = currentSubjects
 
     return buildSuccessResponse(nextSubject, 'Save current mentor subject successfully')
+  },
+
+  async deleteCurrentMentorSubject(mentorSubjectId: number): Promise<ApiResponse<null>> {
+    await delay()
+    requireMockSession()
+
+    mentorSubjectsByMentorId[currentMentorState.id] = (
+      mentorSubjectsByMentorId[currentMentorState.id] ?? []
+    ).filter((subject) => subject.id !== mentorSubjectId)
+
+    return buildSuccessResponse(null, 'Delete current mentor subject successfully')
   },
 
   async getMentorSubjects(
@@ -633,7 +809,16 @@ export const mockMentorApi = {
 
     currentMentorVerificationState = {
       ...currentMentorVerificationState,
-      ...payload,
+      fullName: payload.fullName,
+      idCardNumber: payload.idCardNumber ?? null,
+      idCardFrontMediaId: payload.idCardFrontMediaId,
+      idCardFrontUrl: `https://example.com/media/${payload.idCardFrontMediaId}.jpg`,
+      idCardBackMediaId: payload.idCardBackMediaId,
+      idCardBackUrl: `https://example.com/media/${payload.idCardBackMediaId}.jpg`,
+      selfieWithIdMediaId: payload.selfieWithIdMediaId ?? null,
+      selfieWithIdUrl: payload.selfieWithIdMediaId
+        ? `https://example.com/media/${payload.selfieWithIdMediaId}.jpg`
+        : null,
       verificationStatus: 'PENDING',
       updatedAt: new Date().toISOString()
     }
@@ -652,6 +837,87 @@ export const mockMentorApi = {
     return buildSuccessResponse(
       mentorAvailabilitiesByMentorId[mentorId] ?? [],
       'Get mentor availabilities successfully'
+    )
+  },
+
+  async getCurrentMentorAvailabilities(): Promise<
+    ApiResponse<MentorAvailabilityDetailApiResponse[]>
+  > {
+    await delay()
+    requireMockSession()
+
+    return buildSuccessResponse(
+      mentorAvailabilitiesByMentorId[currentMentorState.id] ?? [],
+      'Get current mentor availabilities successfully'
+    )
+  },
+
+  async createCurrentMentorAvailability(
+    payload: SaveCurrentMentorAvailabilityRequest
+  ): Promise<ApiResponse<{ availabilityId: number }>> {
+    await delay()
+    requireMockSession()
+
+    const currentAvailabilities = mentorAvailabilitiesByMentorId[currentMentorState.id] ?? []
+    const nextAvailabilityId =
+      currentAvailabilities.reduce((maxId, item) => Math.max(maxId, item.id), 0) + 1
+
+    mentorAvailabilitiesByMentorId[currentMentorState.id] = [
+      ...currentAvailabilities,
+      {
+        ...normalizeAvailabilityPayload(payload),
+        id: nextAvailabilityId
+      }
+    ]
+
+    return buildCreatedResponse(
+      { availabilityId: nextAvailabilityId },
+      'Create current mentor availability successfully'
+    )
+  },
+
+  async updateCurrentMentorAvailability(
+    availabilityId: number,
+    payload: SaveCurrentMentorAvailabilityRequest
+  ): Promise<ApiResponse<null>> {
+    await delay()
+    requireMockSession()
+
+    mentorAvailabilitiesByMentorId[currentMentorState.id] = (
+      mentorAvailabilitiesByMentorId[currentMentorState.id] ?? []
+    ).map((item) =>
+      item.id === availabilityId
+        ? {
+            ...normalizeAvailabilityPayload(payload),
+            id: availabilityId
+          }
+        : item
+    )
+
+    return buildSuccessResponse(null, 'Update current mentor availability successfully')
+  },
+
+  async deleteCurrentMentorAvailability(availabilityId: number): Promise<ApiResponse<null>> {
+    await delay()
+    requireMockSession()
+
+    mentorAvailabilitiesByMentorId[currentMentorState.id] = (
+      mentorAvailabilitiesByMentorId[currentMentorState.id] ?? []
+    ).filter((item) => item.id !== availabilityId)
+
+    return buildSuccessResponse(null, 'Delete current mentor availability successfully')
+  },
+
+  async getMentorCalendarBooking(
+    mentorId: number,
+    from: string,
+    to: string
+  ): Promise<ApiResponse<MentorCalendarApiResponse>> {
+    await delay()
+
+    return buildSuccessResponse(
+      buildMentorCalendar(mentorId, from, to),
+      'Get mentor calendar successfully'
     )
   },
 

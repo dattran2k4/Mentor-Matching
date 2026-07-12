@@ -19,14 +19,13 @@ export function WorkspacePanel({
   children,
   className,
   contentClassName,
-  description,
   headerClassName,
   title
 }: WorkspacePanelProps) {
   return (
     <Card className={cn('rounded-3xl', className)}>
       <CardHeader className={cn('pb-0', headerClassName)}>
-        <DashboardSectionHeader action={action} description={description} title={title} />
+        <DashboardSectionHeader action={action} title={title} />
       </CardHeader>
       <CardContent className={cn('space-y-4', contentClassName)}>{children}</CardContent>
     </Card>

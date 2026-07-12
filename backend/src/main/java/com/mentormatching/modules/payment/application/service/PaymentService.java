@@ -10,16 +10,22 @@ import org.springframework.transaction.annotation.Transactional;
 import com.mentormatching.modules.booking.domain.BookingStatus;
 import com.mentormatching.modules.payment.application.dto.CreatePaymentCommand;
 import com.mentormatching.modules.payment.application.dto.CheckoutSessionResult;
+import com.mentormatching.modules.payment.application.dto.GetMentorPaymentsQuery;
+import com.mentormatching.modules.payment.application.dto.GetMyPaymentsQuery;
 import com.mentormatching.modules.payment.application.dto.HandleStripeWebhookCommand;
 import com.mentormatching.modules.payment.application.dto.PaymentBookingSnapshot;
 import com.mentormatching.modules.payment.application.dto.PaymentDetail;
+import com.mentormatching.modules.payment.application.dto.PaymentMentorSnapshot;
 import com.mentormatching.modules.payment.application.dto.PaymentResult;
 import com.mentormatching.modules.payment.application.port.in.CreatePaymentUseCase;
 import com.mentormatching.modules.payment.application.port.in.GetPaymentDetailUseCase;
+import com.mentormatching.modules.payment.application.port.in.GetMentorPaymentsUseCase;
+import com.mentormatching.modules.payment.application.port.in.GetMyPaymentsUseCase;
 import com.mentormatching.modules.payment.application.port.in.HandleStripeWebhookUseCase;
 import com.mentormatching.modules.payment.application.port.out.BookingConfirmationPort;
 import com.mentormatching.modules.payment.application.port.out.PaymentBookingLookupPort;
 import com.mentormatching.modules.payment.application.port.out.PaymentCheckoutPort;
+import com.mentormatching.modules.payment.application.port.out.PaymentMentorLookupPort;
 import com.mentormatching.modules.payment.application.port.out.PaymentRepositoryPort;
 import com.mentormatching.modules.payment.domain.Payment;
 import com.mentormatching.modules.payment.domain.PaymentMethod;
@@ -27,24 +33,29 @@ import com.mentormatching.modules.payment.domain.PaymentProvider;
 import com.mentormatching.modules.payment.domain.PaymentStatus;
 import com.mentormatching.shared.exception.InvalidDataException;
 import com.mentormatching.shared.exception.ResourceNotFoundException;
+import com.mentormatching.shared.response.PageResponse;
 
 @Service
-public class PaymentService implements CreatePaymentUseCase, HandleStripeWebhookUseCase, GetPaymentDetailUseCase {
+public class PaymentService implements CreatePaymentUseCase, HandleStripeWebhookUseCase, GetPaymentDetailUseCase,
+        GetMyPaymentsUseCase, GetMentorPaymentsUseCase {
 
     private static final Logger log = LoggerFactory.getLogger(PaymentService.class);
 
     private final PaymentRepositoryPort paymentRepositoryPort;
     private final PaymentBookingLookupPort paymentBookingLookupPort;
     private final PaymentCheckoutPort paymentCheckoutPort;
+    private final PaymentMentorLookupPort paymentMentorLookupPort;
     private final BookingConfirmationPort bookingConfirmationPort;
 
     public PaymentService(PaymentRepositoryPort paymentRepositoryPort,
                           PaymentBookingLookupPort paymentBookingLookupPort,
                           PaymentCheckoutPort paymentCheckoutPort,
+                          PaymentMentorLookupPort paymentMentorLookupPort,
                           BookingConfirmationPort bookingConfirmationPort) {
         this.paymentRepositoryPort = paymentRepositoryPort;
         this.paymentBookingLookupPort = paymentBookingLookupPort;
         this.paymentCheckoutPort = paymentCheckoutPort;
+        this.paymentMentorLookupPort = paymentMentorLookupPort;
         this.bookingConfirmationPort = bookingConfirmationPort;
     }
 
@@ -92,6 +103,19 @@ public class PaymentService implements CreatePaymentUseCase, HandleStripeWebhook
                 booking.status(), payment.getProviderReferenceId(), payment.getProviderTransactionId(),
                 payment.getPaidAt(), payment.getExpiresAt(), payment.getFailureReason(), payment.getCreatedAt(),
                 payment.getUpdatedAt());
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<Payment> getMyPayments(GetMyPaymentsQuery query) {
+        return paymentRepositoryPort.findMyPayments(query);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public PageResponse<Payment> getMentorPayments(GetMentorPaymentsQuery query) {
+        PaymentMentorSnapshot mentor = paymentMentorLookupPort.getMentorSnapshotByUserId(query.mentorUserId());
+        return paymentRepositoryPort.findMentorPayments(mentor.mentorId(), query);
     }
 
     private void validateBookingCanBePaid(CreatePaymentCommand command, PaymentBookingSnapshot booking) {

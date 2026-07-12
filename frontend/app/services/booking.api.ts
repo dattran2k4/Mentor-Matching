@@ -14,7 +14,8 @@ import type {
 const BOOKING_ENDPOINTS = {
   bookings: 'bookings',
   myBookings: 'bookings/me',
-  myMentorBookings: 'bookings/mentor/me'
+  myMentorBookings: 'bookings/mentor/me',
+  completeBooking: (bookingId: number) => `bookings/${bookingId}/complete`
 } as const
 
 const defaultBookingApi = {
@@ -49,7 +50,10 @@ const defaultBookingApi = {
       await http.get<ApiResponse<BookingListPageApiResponse>>(BOOKING_ENDPOINTS.myMentorBookings, {
         params
       })
-    ).data
+    ).data,
+
+  completeBookingByMentor: async (bookingId: number): Promise<ApiResponse<null>> =>
+    (await http.patch<ApiResponse<null>>(BOOKING_ENDPOINTS.completeBooking(bookingId))).data
 }
 
 export const bookingApi = env.useMock ? mockBookingApi : defaultBookingApi

@@ -19,10 +19,17 @@ export type CatalogGradeApiResponse = {
   levelGroup: GradeLevelGroupApiResponse
 }
 
+export type CatalogSubjectGradeApiResponse = {
+  id: number
+  subjectId: number
+  gradeId: number | null
+}
+
 export type CatalogOptionsApiResponse = {
   categories: CatalogCategoryApiResponse[]
   subjects: CatalogSubjectApiResponse[]
   grades: CatalogGradeApiResponse[]
+  subjectGrades: CatalogSubjectGradeApiResponse[]
 }
 
 export type CreateSubjectRequest = {

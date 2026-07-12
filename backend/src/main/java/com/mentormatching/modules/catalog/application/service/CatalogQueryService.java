@@ -62,7 +62,11 @@ public class CatalogQueryService implements GetSubjectGradeSummaryUseCase, GetCa
                 .map(g -> new CatalogOptions.GradeOption(g.getId(), g.getName(), g.getLevelGroup().name()))
                 .toList();
 
-        return new CatalogOptions(categories, subjects, grades);
+        List<CatalogOptions.SubjectGradeOption> subjectGrades = subjectGradeRepositoryPort.findAll().stream()
+                .map(sg -> new CatalogOptions.SubjectGradeOption(sg.getId(), sg.getSubjectId(), sg.getGradeId()))
+                .toList();
+
+        return new CatalogOptions(categories, subjects, grades, subjectGrades);
     }
 
     @Override
