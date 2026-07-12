@@ -32,7 +32,7 @@ public class SubjectManageService implements ManageSubjectUseCase {
         if (command.name() == null || command.name().isBlank()) {
             throw new InvalidDataException("Subject name cannot be empty");
         }
-        if (subjectRepositoryPort.existsByName(command.name().trim())) {
+        if (subjectRepositoryPort.existsByNameIgnoreCase(command.name().trim())) {
             throw new InvalidDataException("Subject name already exists");
         }
         categoryRepositoryPort.findById(command.categoryId())
@@ -61,7 +61,7 @@ public class SubjectManageService implements ManageSubjectUseCase {
         }
         
         if (!existingSubject.getName().equalsIgnoreCase(command.name().trim()) 
-                && subjectRepositoryPort.existsByName(command.name().trim())) {
+                && subjectRepositoryPort.existsByNameIgnoreCase(command.name().trim())) {
             throw new InvalidDataException("Subject name already exists");
         }
 

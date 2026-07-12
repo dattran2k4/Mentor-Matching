@@ -10,5 +10,5 @@ public interface SubjectJpaRepository extends JpaRepository<SubjectJpaEntity, Lo
 
     List<SubjectJpaEntity> findByCategoryId(Long categoryId);
 
-    boolean existsByName(String name);
+    boolean existsByNameIgnoreCase(String name);
 }

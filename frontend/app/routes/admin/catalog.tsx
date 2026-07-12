@@ -60,7 +60,7 @@ export default function AdminCatalogPage() {
       <DashboardPage title="Quản lý Danh mục">
         <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-red-600 shadow-sm">
           <p className="font-medium">{error}</p>
-          <Button onClick={fetchData} className="mt-4" variant="outline">Thử lại</Button>
+          <Button onClick={() => fetchData()} className="mt-4" variant="outline">Thử lại</Button>
         </div>
       </DashboardPage>
     )

@@ -15,7 +15,7 @@ public interface SubjectRepositoryPort {
 
     List<Subject> findAll();
 
-    boolean existsByName(String name);
+    boolean existsByNameIgnoreCase(String name);
 
     void deleteById(Long id);
 }

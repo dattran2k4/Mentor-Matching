@@ -16,6 +16,7 @@ import com.mentormatching.modules.catalog.application.port.in.ManageSubjectUseCa
 import com.mentormatching.modules.catalog.domain.Subject;
 import com.mentormatching.modules.catalog.presentation.admin.dto.request.CreateSubjectRequest;
 import com.mentormatching.modules.catalog.presentation.admin.dto.request.UpdateSubjectRequest;
+import com.mentormatching.modules.catalog.presentation.dto.response.CatalogOptionsResponse;
 import com.mentormatching.shared.response.ApiResponse;
 import com.mentormatching.shared.response.ApiResponseFactory;
 
@@ -35,19 +36,21 @@ public class AdminCatalogController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/subjects")
-    public ApiResponse<Subject> createSubject(@Valid @RequestBody CreateSubjectRequest request) {
+    public ApiResponse<CatalogOptionsResponse.SubjectOptionResponse> createSubject(@Valid @RequestBody CreateSubjectRequest request) {
         CreateSubjectCommand command = new CreateSubjectCommand(
                 request.categoryId(),
                 request.name(),
                 request.description()
         );
         Subject created = manageSubjectUseCase.createSubject(command);
-        return apiResponseFactory.success(created, "Subject created successfully");
+        CatalogOptionsResponse.SubjectOptionResponse responseDto = new CatalogOptionsResponse.SubjectOptionResponse(
+                created.getId(), created.getCategoryId(), created.getName(), created.getDescription());
+        return apiResponseFactory.success(responseDto, "Subject created successfully");
     }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/subjects/{id}")
-    public ApiResponse<Subject> updateSubject(@PathVariable Long id, @Valid @RequestBody UpdateSubjectRequest request) {
+    public ApiResponse<CatalogOptionsResponse.SubjectOptionResponse> updateSubject(@PathVariable Long id, @Valid @RequestBody UpdateSubjectRequest request) {
         UpdateSubjectCommand command = new UpdateSubjectCommand(
                 id,
                 request.categoryId(),
@@ -55,7 +58,9 @@ public class AdminCatalogController {
                 request.description()
         );
         Subject updated = manageSubjectUseCase.updateSubject(command);
-        return apiResponseFactory.success(updated, "Subject updated successfully");
+        CatalogOptionsResponse.SubjectOptionResponse responseDto = new CatalogOptionsResponse.SubjectOptionResponse(
+                updated.getId(), updated.getCategoryId(), updated.getName(), updated.getDescription());
+        return apiResponseFactory.success(responseDto, "Subject updated successfully");
     }
 
     @PreAuthorize("hasRole('ADMIN')")

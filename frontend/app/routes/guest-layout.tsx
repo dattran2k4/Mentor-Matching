@@ -15,7 +15,7 @@ export default function GuestLayout() {
   useEffect(() => {
     if (accessToken && !isLoading) {
       const redirectTo = searchParams.get('redirectTo')
-      if (redirectTo) {
+      if (redirectTo && redirectTo.startsWith('/')) {
         navigate(redirectTo, { replace: true })
       } else if (user) {
         navigate(getDashboardPath(user.roles), { replace: true })

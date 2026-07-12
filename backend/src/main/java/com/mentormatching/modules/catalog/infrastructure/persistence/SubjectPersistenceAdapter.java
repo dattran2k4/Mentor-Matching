@@ -43,8 +43,8 @@ public class SubjectPersistenceAdapter implements SubjectRepositoryPort {
     }
 
     @Override
-    public boolean existsByName(String name) {
-        return subjectJpaRepository.existsByName(name);
+    public boolean existsByNameIgnoreCase(String name) {
+        return subjectJpaRepository.existsByNameIgnoreCase(name);
     }
 
     @Override

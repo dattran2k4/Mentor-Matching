@@ -3,7 +3,6 @@ import { FileEdit, Trash2, BookOpen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import type { CatalogCategoryApiResponse, CatalogSubjectApiResponse } from '@/types/api/catalog'
-import { cn } from '@/utils/cn'
 import { DeleteSubjectModal } from './DeleteSubjectModal'
 
 type SubjectTableProps = {
