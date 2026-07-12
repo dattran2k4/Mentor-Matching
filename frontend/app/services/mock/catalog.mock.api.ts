@@ -129,41 +129,51 @@ export const mockCatalogApi = {
 
     return buildSuccessResponse(mockCatalogOptions, 'Get catalog options successfully')
   },
-  async createSubject(data: import('@/types/api/catalog').CreateSubjectRequest): Promise<ApiResponse<import('@/types/api/catalog').CatalogSubjectApiResponse>> {
+  async createSubject(
+    data: import('@/types/api/catalog').CreateSubjectRequest
+  ): Promise<ApiResponse<import('@/types/api/catalog').CatalogSubjectApiResponse>> {
     await delay()
     const newSubject = { id: Date.now(), ...data, description: data.description || '' }
     mockSubjects.push(newSubject)
     return buildSuccessResponse(newSubject, 'Subject created successfully')
   },
-  async updateSubject(id: number, data: import('@/types/api/catalog').UpdateSubjectRequest): Promise<ApiResponse<import('@/types/api/catalog').CatalogSubjectApiResponse>> {
+  async updateSubject(
+    id: number,
+    data: import('@/types/api/catalog').UpdateSubjectRequest
+  ): Promise<ApiResponse<import('@/types/api/catalog').CatalogSubjectApiResponse>> {
     await delay()
-    const index = mockSubjects.findIndex(s => s.id === id)
+    const index = mockSubjects.findIndex((s) => s.id === id)
     if (index === -1) throw new Error('Subject not found')
     mockSubjects[index] = { ...mockSubjects[index], ...data, description: data.description || '' }
     return buildSuccessResponse(mockSubjects[index], 'Subject updated successfully')
   },
   async deleteSubject(id: number): Promise<ApiResponse<void>> {
     await delay()
-    const index = mockSubjects.findIndex(s => s.id === id)
+    const index = mockSubjects.findIndex((s) => s.id === id)
     if (index > -1) mockSubjects.splice(index, 1)
     return buildSuccessResponse(undefined, 'Subject deleted successfully')
   },
-  async createGrade(data: import('@/types/api/catalog').CreateGradeRequest): Promise<ApiResponse<import('@/types/api/catalog').CatalogGradeApiResponse>> {
+  async createGrade(
+    data: import('@/types/api/catalog').CreateGradeRequest
+  ): Promise<ApiResponse<import('@/types/api/catalog').CatalogGradeApiResponse>> {
     await delay()
     const newGrade = { id: Date.now(), ...data }
     mockGrades.push(newGrade)
     return buildSuccessResponse(newGrade, 'Grade created successfully')
   },
-  async updateGrade(id: number, data: import('@/types/api/catalog').UpdateGradeRequest): Promise<ApiResponse<import('@/types/api/catalog').CatalogGradeApiResponse>> {
+  async updateGrade(
+    id: number,
+    data: import('@/types/api/catalog').UpdateGradeRequest
+  ): Promise<ApiResponse<import('@/types/api/catalog').CatalogGradeApiResponse>> {
     await delay()
-    const index = mockGrades.findIndex(g => g.id === id)
+    const index = mockGrades.findIndex((g) => g.id === id)
     if (index === -1) throw new Error('Grade not found')
     mockGrades[index] = { ...mockGrades[index], ...data }
     return buildSuccessResponse(mockGrades[index], 'Grade updated successfully')
   },
   async deleteGrade(id: number): Promise<ApiResponse<void>> {
     await delay()
-    const index = mockGrades.findIndex(g => g.id === id)
+    const index = mockGrades.findIndex((g) => g.id === id)
     if (index > -1) mockGrades.splice(index, 1)
     return buildSuccessResponse(undefined, 'Grade deleted successfully')
   }

@@ -18,7 +18,7 @@ export default function AdminCatalogPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [successMessage, setSuccessMessage] = useState('')
-  
+
   const [isSubjectModalOpen, setIsSubjectModalOpen] = useState(false)
   const [editingSubject, setEditingSubject] = useState<CatalogSubjectApiResponse | null>(null)
 
@@ -58,8 +58,8 @@ export default function AdminCatalogPage() {
 
   if (isLoading) {
     return (
-      <DashboardPage title="Quản lý Danh mục">
-        <div className="flex h-64 items-center justify-center">
+      <DashboardPage title='Quản lý Danh mục'>
+        <div className='flex h-64 items-center justify-center'>
           <Spinner />
         </div>
       </DashboardPage>
@@ -68,10 +68,12 @@ export default function AdminCatalogPage() {
 
   if (error) {
     return (
-      <DashboardPage title="Quản lý Danh mục">
-        <div className="rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-red-600 shadow-sm">
-          <p className="font-medium">{error}</p>
-          <Button onClick={() => fetchData()} className="mt-4" variant="outline">Thử lại</Button>
+      <DashboardPage title='Quản lý Danh mục'>
+        <div className='rounded-2xl border border-red-200 bg-red-50 p-6 text-center text-red-600 shadow-sm'>
+          <p className='font-medium'>{error}</p>
+          <Button onClick={() => fetchData()} className='mt-4' variant='outline'>
+            Thử lại
+          </Button>
         </div>
       </DashboardPage>
     )
@@ -79,29 +81,32 @@ export default function AdminCatalogPage() {
 
   return (
     <DashboardPage
-      title="Quản lý Danh mục"
-      description="Quản lý và quy hoạch danh sách môn học, lớp học được áp dụng trên toàn hệ thống."
+      title='Quản lý Danh mục'
+      description='Quản lý và quy hoạch danh sách môn học, lớp học được áp dụng trên toàn hệ thống.'
     >
       <WorkspacePanel
-        title="Danh sách Môn học (Subjects)"
-        description="Định nghĩa các môn học chính khóa và kỹ năng mà Mentor có thể đăng ký giảng dạy."
+        title='Danh sách Môn học (Subjects)'
+        description='Định nghĩa các môn học chính khóa và kỹ năng mà Mentor có thể đăng ký giảng dạy.'
         action={
-          <Button onClick={() => handleOpenSubjectModal()} className="rounded-xl px-5 h-10">
-            <Plus size={16} className="mr-2" />
+          <Button onClick={() => handleOpenSubjectModal()} className='h-10 rounded-xl px-5'>
+            <Plus size={16} className='mr-2' />
             Thêm Môn học
           </Button>
         }
       >
         {successMessage ? (
-          <div className='mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700' role='alert'>
+          <div
+            className='mb-6 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700'
+            role='alert'
+          >
             {successMessage}
           </div>
         ) : null}
 
         {!data?.subjects || data.subjects.length === 0 ? (
           <EmptyState
-            title="Chưa có môn học nào"
-            description="Bắt đầu thêm các môn học đầu tiên để Mentor có thể lựa chọn."
+            title='Chưa có môn học nào'
+            description='Bắt đầu thêm các môn học đầu tiên để Mentor có thể lựa chọn.'
           />
         ) : (
           <SubjectTable
@@ -113,28 +118,24 @@ export default function AdminCatalogPage() {
         )}
       </WorkspacePanel>
 
-      <div className="mt-8">
+      <div className='mt-8'>
         <WorkspacePanel
-          title="Danh sách Lớp học / Trình độ (Grades)"
-          description="Định nghĩa các cấp bậc, lớp học hoặc chứng chỉ để ghép nối với Môn học."
+          title='Danh sách Lớp học / Trình độ (Grades)'
+          description='Định nghĩa các cấp bậc, lớp học hoặc chứng chỉ để ghép nối với Môn học.'
           action={
-            <Button onClick={() => handleOpenGradeModal()} className="rounded-xl px-5 h-10">
-              <Plus size={16} className="mr-2" />
+            <Button onClick={() => handleOpenGradeModal()} className='h-10 rounded-xl px-5'>
+              <Plus size={16} className='mr-2' />
               Thêm Cấp độ
             </Button>
           }
         >
           {!data?.grades || data.grades.length === 0 ? (
             <EmptyState
-              title="Chưa có cấp độ nào"
-              description="Bắt đầu thêm các lớp học, cấp độ đầu tiên."
+              title='Chưa có cấp độ nào'
+              description='Bắt đầu thêm các lớp học, cấp độ đầu tiên.'
             />
           ) : (
-            <GradeTable
-              grades={data.grades}
-              onEdit={handleOpenGradeModal}
-              onRefresh={fetchData}
-            />
+            <GradeTable grades={data.grades} onEdit={handleOpenGradeModal} onRefresh={fetchData} />
           )}
         </WorkspacePanel>
       </div>

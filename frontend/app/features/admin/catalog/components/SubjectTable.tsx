@@ -1,7 +1,14 @@
 import { useState } from 'react'
 import { FileEdit, Trash2, BookOpen } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
+} from '@/components/ui/table'
 import type { CatalogCategoryApiResponse, CatalogSubjectApiResponse } from '@/types/api/catalog'
 import { DeleteSubjectModal } from './DeleteSubjectModal'
 
@@ -47,7 +54,9 @@ export function SubjectTable({ subjects, categories, onEdit, onRefresh }: Subjec
                   </div>
                 </TableCell>
                 <TableCell className='text-sm font-medium text-slate-700'>
-                  <span className='rounded-full bg-slate-100 px-3 py-1'>{getCategoryName(subject.categoryId)}</span>
+                  <span className='rounded-full bg-slate-100 px-3 py-1'>
+                    {getCategoryName(subject.categoryId)}
+                  </span>
                 </TableCell>
                 <TableCell className='max-w-[250px] truncate text-sm text-slate-600'>
                   {subject.description || 'Không có mô tả'}
@@ -65,7 +74,7 @@ export function SubjectTable({ subjects, categories, onEdit, onRefresh }: Subjec
                     <Button
                       variant='outline'
                       size='sm'
-                      className='h-8 w-8 rounded-lg p-0 text-red-600 hover:bg-red-50 hover:text-red-700 hover:border-red-200'
+                      className='h-8 w-8 rounded-lg p-0 text-red-600 hover:border-red-200 hover:bg-red-50 hover:text-red-700'
                       onClick={() => handleDeleteClick(subject)}
                     >
                       <Trash2 size={14} />

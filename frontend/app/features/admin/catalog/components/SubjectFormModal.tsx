@@ -5,7 +5,12 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import type { CatalogCategoryApiResponse, CatalogSubjectApiResponse, CreateSubjectRequest, UpdateSubjectRequest } from '@/types/api/catalog'
+import type {
+  CatalogCategoryApiResponse,
+  CatalogSubjectApiResponse,
+  CreateSubjectRequest,
+  UpdateSubjectRequest
+} from '@/types/api/catalog'
 import { catalogApi } from '@/services/catalog.api'
 
 type SubjectFormModalProps = {
@@ -16,7 +21,13 @@ type SubjectFormModalProps = {
   initialData?: CatalogSubjectApiResponse | null
 }
 
-export function SubjectFormModal({ isOpen, onClose, onSuccess, categories, initialData }: SubjectFormModalProps) {
+export function SubjectFormModal({
+  isOpen,
+  onClose,
+  onSuccess,
+  categories,
+  initialData
+}: SubjectFormModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [formData, setFormData] = useState<CreateSubjectRequest>({
@@ -87,21 +98,25 @@ export function SubjectFormModal({ isOpen, onClose, onSuccess, categories, initi
         <form onSubmit={handleSubmit}>
           <div className='space-y-5 px-7 py-6'>
             {error && (
-              <div className="rounded-xl bg-red-50 p-3 text-sm font-medium text-red-700">
+              <div className='rounded-xl bg-red-50 p-3 text-sm font-medium text-red-700'>
                 {error}
               </div>
             )}
 
             <div className='space-y-2'>
-              <Label className='text-ink text-sm font-medium' htmlFor="categoryId">Nhóm Danh mục</Label>
+              <Label className='text-ink text-sm font-medium' htmlFor='categoryId'>
+                Nhóm Danh mục
+              </Label>
               <select
-                id="categoryId"
+                id='categoryId'
                 value={formData.categoryId}
                 onChange={(e) => setFormData({ ...formData, categoryId: Number(e.target.value) })}
-                className="flex h-12 w-full items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary disabled:cursor-not-allowed disabled:opacity-50"
+                className='focus:border-primary focus:ring-primary flex h-12 w-full items-center justify-between rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm focus:ring-1 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50'
                 required
               >
-                <option value={0} disabled>-- Chọn danh mục --</option>
+                <option value={0} disabled>
+                  -- Chọn danh mục --
+                </option>
                 {categories.map((cat) => (
                   <option key={cat.id} value={cat.id}>
                     {cat.name}
@@ -111,32 +126,36 @@ export function SubjectFormModal({ isOpen, onClose, onSuccess, categories, initi
             </div>
 
             <div className='space-y-2'>
-              <Label className='text-ink text-sm font-medium' htmlFor="name">Tên Môn học</Label>
+              <Label className='text-ink text-sm font-medium' htmlFor='name'>
+                Tên Môn học
+              </Label>
               <Input
-                id="name"
+                id='name'
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                 required
-                className="h-12 rounded-xl"
-                placeholder="Ví dụ: Toán Cao Cấp, Lập trình Java..."
+                className='h-12 rounded-xl'
+                placeholder='Ví dụ: Toán Cao Cấp, Lập trình Java...'
               />
             </div>
 
             <div className='space-y-2'>
-              <Label className='text-ink text-sm font-medium' htmlFor="description">Mô tả ngắn gọn</Label>
+              <Label className='text-ink text-sm font-medium' htmlFor='description'>
+                Mô tả ngắn gọn
+              </Label>
               <Textarea
-                id="description"
+                id='description'
                 value={formData.description || ''}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                className="min-h-[100px] rounded-xl"
-                placeholder="Nội dung tóm tắt môn học..."
+                className='min-h-[100px] rounded-xl'
+                placeholder='Nội dung tóm tắt môn học...'
               />
             </div>
           </div>
 
           <div className='flex items-center justify-end gap-3 border-t border-slate-200 px-7 py-4'>
             <Button
-              type="button"
+              type='button'
               className='h-11 rounded-xl px-5'
               variant='outline'
               onClick={onClose}
@@ -144,11 +163,7 @@ export function SubjectFormModal({ isOpen, onClose, onSuccess, categories, initi
             >
               Hủy
             </Button>
-            <Button
-              type="submit"
-              className='h-11 rounded-xl px-6'
-              disabled={isSubmitting}
-            >
+            <Button type='submit' className='h-11 rounded-xl px-6' disabled={isSubmitting}>
               {isSubmitting ? 'Đang xử lý...' : 'Lưu thông tin'}
             </Button>
           </div>
