@@ -3,6 +3,7 @@ import { AlertTriangle, FileWarning } from 'lucide-react'
 
 import { DashboardPage } from '@/components/DashboardPage'
 import { EmptyState } from '@/components/EmptyState'
+import { StatusFilterPills } from '@/components/StatusFilterPills'
 import { WorkspaceNotice } from '@/components/WorkspaceNotice'
 import { WorkspacePanel } from '@/components/WorkspacePanel'
 import { Badge } from '@/components/ui/badge'
@@ -69,18 +70,14 @@ export default function AdminReportsPage() {
           title='Trạng thái báo cáo'
           description='Tách báo cáo mới, đang xử lý và đã đóng để admin rà hàng đợi theo mức ưu tiên thay vì đọc một danh sách phẳng.'
         >
-          <div className='flex flex-wrap items-center gap-2'>
-            {reportFilters.map((filter) => (
-              <Button
-                key={filter.key}
-                onClick={() => setActiveFilter(filter.key)}
-                size='sm'
-                variant={activeFilter === filter.key ? 'default' : 'secondary'}
-              >
-                {filter.label} ({filterCounts[filter.key]})
-              </Button>
-            ))}
-          </div>
+          <StatusFilterPills
+            onValueChange={setActiveFilter}
+            options={reportFilters.map((filter) => ({
+              key: filter.key,
+              label: `${filter.label} (${filterCounts[filter.key]})`
+            }))}
+            value={activeFilter}
+          />
         </WorkspacePanel>
 
         <WorkspacePanel

@@ -4,8 +4,8 @@ import { useMemo, useState } from 'react'
 import { DashboardPage } from '@/components/DashboardPage'
 import { ScreenErrorState } from '@/components/ScreenErrorState'
 import { StatusBadge } from '@/components/StatusBadge'
+import { StatusFilterPills } from '@/components/StatusFilterPills'
 import { WorkspaceMetricCard } from '@/components/WorkspaceMetricCard'
-import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import {
@@ -160,19 +160,11 @@ export default function MentorEarningsPage() {
                 />
               </div>
 
-              <div className='flex flex-wrap gap-2 rounded-2xl bg-slate-100/80 p-2'>
-                {paymentFilters.map((filter) => (
-                  <Button
-                    className='rounded-xl'
-                    key={filter.key}
-                    onClick={() => setActiveFilter(filter.key)}
-                    size='sm'
-                    variant={activeFilter === filter.key ? 'default' : 'secondary'}
-                  >
-                    {filter.label}
-                  </Button>
-                ))}
-              </div>
+              <StatusFilterPills
+                onValueChange={setActiveFilter}
+                options={paymentFilters}
+                value={activeFilter}
+              />
             </div>
 
             {filteredPayments.length === 0 ? (

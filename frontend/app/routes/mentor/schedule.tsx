@@ -16,6 +16,7 @@ import { EmptyState } from '@/components/EmptyState'
 import { MentorAvailabilityModal } from '@/components/MentorAvailabilityModal'
 import { ScreenErrorState } from '@/components/ScreenErrorState'
 import { StatusBadge } from '@/components/StatusBadge'
+import { StatusFilterPills } from '@/components/StatusFilterPills'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { path } from '@/config/path'
@@ -397,28 +398,11 @@ export default function MentorSchedulePage() {
       <section className='mt-5 space-y-5'>
         <div className='flex flex-col gap-3 md:flex-row md:items-center md:justify-between'>
           <h2 className='text-ink text-[2rem] font-bold tracking-tight'>Buổi đã được đặt</h2>
-          <div className='flex flex-wrap gap-2 rounded-2xl border border-slate-200 bg-slate-50 p-2'>
-            {bookingStatusFilters.map((filter) => {
-              const isSelected = bookingStatusFilter === filter.key
-
-              return (
-                <Button
-                  className={cn(
-                    'rounded-xl border px-3 shadow-none transition-colors',
-                    isSelected
-                      ? 'border-sky-600 bg-sky-600 text-white hover:border-sky-700 hover:bg-sky-700'
-                      : 'border-slate-200 bg-white text-slate-700 hover:border-sky-200 hover:bg-sky-50 hover:text-sky-800'
-                  )}
-                  key={filter.key}
-                  onClick={() => setBookingStatusFilter(filter.key)}
-                  size='sm'
-                  variant='outline'
-                >
-                  {filter.label}
-                </Button>
-              )
-            })}
-          </div>
+          <StatusFilterPills
+            onValueChange={setBookingStatusFilter}
+            options={bookingStatusFilters}
+            value={bookingStatusFilter}
+          />
         </div>
 
         {mentorBookingsQuery.isLoading && !mentorBookingsQuery.data ? (

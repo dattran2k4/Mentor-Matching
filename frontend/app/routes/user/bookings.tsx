@@ -18,6 +18,7 @@ import { Link, useSearchParams } from 'react-router'
 import { DashboardPage } from '@/components/DashboardPage'
 import { ScreenErrorState } from '@/components/ScreenErrorState'
 import { StatusBadge } from '@/components/StatusBadge'
+import { StatusFilterPills } from '@/components/StatusFilterPills'
 import { Badge } from '@/components/ui/badge'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -341,19 +342,11 @@ export default function UserBookingsPage() {
           </div>
         ) : null}
 
-        <div className='flex flex-wrap gap-2 rounded-2xl bg-slate-100/80 p-2'>
-          {bookingFilters.map((filter) => (
-            <Button
-              className='rounded-xl'
-              key={filter.key}
-              onClick={() => setActiveFilter(filter.key)}
-              size='sm'
-              variant={activeFilter === filter.key ? 'default' : 'secondary'}
-            >
-              {filter.label}
-            </Button>
-          ))}
-        </div>
+        <StatusFilterPills
+          onValueChange={setActiveFilter}
+          options={bookingFilters}
+          value={activeFilter}
+        />
 
         {filteredBookings.length === 0 ? (
           <Card className='overflow-hidden rounded-[28px] border-slate-200 bg-white shadow-sm'>

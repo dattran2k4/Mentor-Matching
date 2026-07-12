@@ -34,3 +34,8 @@ dist/
 
 # Private Codex skills
 codex-skills/
+
+#doc
+*.docx
+report_tools/
+*.png

@@ -4,6 +4,7 @@ import { ExternalLink, Filter, Search, ShieldCheck, Users } from 'lucide-react'
 import { DashboardPage } from '@/components/DashboardPage'
 import { EmptyState } from '@/components/EmptyState'
 import { StatusBadge } from '@/components/StatusBadge'
+import { StatusFilterPills } from '@/components/StatusFilterPills'
 import { WorkspacePanel } from '@/components/WorkspacePanel'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -147,18 +148,14 @@ export default function AdminMentorsPage() {
           title='Mentor đang hoạt động'
           description='Dùng để rà soát mentor đã lên sàn, tạm dừng hồ sơ khi cần và theo dõi chất lượng hoạt động hiện tại.'
           action={
-            <div className='flex flex-wrap items-center gap-2'>
-              {mentorDirectoryFilters.map((filter) => (
-                <Button
-                  key={filter.key}
-                  onClick={() => setDirectoryFilter(filter.key)}
-                  size='sm'
-                  variant={directoryFilter === filter.key ? 'default' : 'secondary'}
-                >
-                  {filter.label} ({directoryCounts[filter.key]})
-                </Button>
-              ))}
-            </div>
+            <StatusFilterPills
+              onValueChange={setDirectoryFilter}
+              options={mentorDirectoryFilters.map((filter) => ({
+                key: filter.key,
+                label: `${filter.label} (${directoryCounts[filter.key]})`
+              }))}
+              value={directoryFilter}
+            />
           }
         >
           <div className='flex w-full flex-wrap items-center gap-3'>

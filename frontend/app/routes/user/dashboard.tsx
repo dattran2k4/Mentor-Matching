@@ -289,7 +289,7 @@ export default function UserDashboardPage() {
           paymentDueBookings.length > 0
             ? `${paymentDueBookings.length} khoản học phí đang chờ bạn hoàn tất.`
             : 'Xem lại tình trạng thanh toán và các khoản học phí gần đây.',
-        href: path.user.bookings,
+        href: path.user.payments,
         icon: Wallet
       },
       {
@@ -598,11 +598,7 @@ export default function UserDashboardPage() {
             )}
           </WorkspacePanel>
 
-          <WorkspacePanel
-            contentClassName='space-y-4'
-            title='Tóm tắt tuần này'
-            description={`Xin chào ${currentUserQuery.data.fullName}, đây là những điều bạn nên chú ý trong tuần này.`}
-          >
+          <WorkspacePanel contentClassName='space-y-4' title='Tóm tắt tuần này'>
             {summaryItems.map((item) => (
               <SummaryStatCard {...item} key={item.label} />
             ))}
