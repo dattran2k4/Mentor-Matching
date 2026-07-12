@@ -19,6 +19,7 @@ import com.mentormatching.modules.review.application.dto.UpdateReviewCommand;
 import com.mentormatching.modules.review.application.port.in.CalculateMentorRatingSummaryUseCase;
 import com.mentormatching.modules.review.application.port.in.CreateReviewUseCase;
 import com.mentormatching.modules.review.application.port.in.GetMentorReviewsUseCase;
+import com.mentormatching.modules.review.application.port.in.GetMyReviewsUseCase;
 import com.mentormatching.modules.review.application.port.in.GetReviewDetailUseCase;
 import com.mentormatching.modules.review.application.port.in.DeleteReviewUseCase;
 import com.mentormatching.modules.review.application.port.in.UpdateReviewUseCase;
@@ -32,7 +33,7 @@ import com.mentormatching.shared.exception.ResourceNotFoundException;
 import com.mentormatching.shared.response.PageResponse;
 
 @Service
-public class ReviewService implements CreateReviewUseCase, GetReviewDetailUseCase, GetMentorReviewsUseCase, CalculateMentorRatingSummaryUseCase, UpdateReviewUseCase, DeleteReviewUseCase {
+public class ReviewService implements CreateReviewUseCase, GetReviewDetailUseCase, GetMentorReviewsUseCase, CalculateMentorRatingSummaryUseCase, UpdateReviewUseCase, DeleteReviewUseCase, GetMyReviewsUseCase {
 
     private final ReviewRepositoryPort reviewRepositoryPort;
     private final ReviewBookingLookupPort reviewBookingLookupPort;
@@ -154,6 +155,31 @@ public class ReviewService implements CreateReviewUseCase, GetReviewDetailUseCas
         }
 
         return new MentorRatingSummary(averageRating, totalReviews, distribution);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<ReviewDetail> getMyReviews(Long studentId) {
+        List<Review> reviews = reviewRepositoryPort.findByStudentUserId(studentId);
+
+        return reviews.stream().map(review -> {
+            String studentName = reviewUserLookupPort.getUserFullName(review.getStudentUserId());
+            Long mentorUserId = reviewMentorLookupPort.getUserId(review.getMentorId());
+            String mentorName = mentorUserId != null ? reviewUserLookupPort.getUserFullName(mentorUserId) : null;
+
+            return new ReviewDetail(
+                    review.getId(),
+                    review.getBookingId(),
+                    review.getStudentUserId(),
+                    studentName,
+                    review.getMentorId(),
+                    mentorName,
+                    review.getRating(),
+                    review.getComment(),
+                    review.getCreatedAt(),
+                    review.getUpdatedAt()
+            );
+        }).collect(Collectors.toList());
     }
 
     @Override

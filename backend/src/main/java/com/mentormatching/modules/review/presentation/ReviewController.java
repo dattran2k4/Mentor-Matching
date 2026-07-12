@@ -22,6 +22,7 @@ import com.mentormatching.modules.review.application.port.in.CalculateMentorRati
 import com.mentormatching.modules.review.application.port.in.CreateReviewUseCase;
 import com.mentormatching.modules.review.application.port.in.DeleteReviewUseCase;
 import com.mentormatching.modules.review.application.port.in.GetMentorReviewsUseCase;
+import com.mentormatching.modules.review.application.port.in.GetMyReviewsUseCase;
 import com.mentormatching.modules.review.application.port.in.GetReviewDetailUseCase;
 import com.mentormatching.modules.review.application.port.in.UpdateReviewUseCase;
 import com.mentormatching.modules.review.presentation.dto.request.CreateReviewRequest;
@@ -34,6 +35,8 @@ import com.mentormatching.shared.response.ApiResponse;
 import com.mentormatching.shared.response.ApiResponseFactory;
 import com.mentormatching.shared.response.PageResponse;
 import com.mentormatching.shared.security.model.AuthenticatedPrincipal;
+
+import java.util.List;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
@@ -48,6 +51,7 @@ public class ReviewController {
 
     private final CreateReviewUseCase createReviewUseCase;
     private final GetReviewDetailUseCase getReviewDetailUseCase;
+    private final GetMyReviewsUseCase getMyReviewsUseCase;
     private final GetMentorReviewsUseCase getMentorReviewsUseCase;
     private final CalculateMentorRatingSummaryUseCase calculateMentorRatingSummaryUseCase;
     private final UpdateReviewUseCase updateReviewUseCase;
@@ -66,6 +70,16 @@ public class ReviewController {
     public ApiResponse<ReviewDetailResponse> getReviewDetail(@PathVariable Long id) {
         ReviewDetailResponse detail = ReviewDetailResponse.from(getReviewDetailUseCase.getReviewDetail(id));
         return apiResponseFactory.success(detail, "Get review detail successfully");
+    }
+
+    @GetMapping("/me")
+    @PreAuthorize("isAuthenticated()")
+    public ApiResponse<List<ReviewDetailResponse>> getMyReviews(@AuthenticationPrincipal AuthenticatedPrincipal principal) {
+        List<ReviewDetailResponse> reviews = getMyReviewsUseCase.getMyReviews(principal.getId())
+                .stream()
+                .map(ReviewDetailResponse::from)
+                .toList();
+        return apiResponseFactory.success(reviews, "Get my reviews successfully");
     }
 
     @GetMapping("/mentor/{mentorId}")
