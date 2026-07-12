@@ -644,7 +644,11 @@ export default function UserBookingsPage() {
                               }}
                               size='lg'
                             >
-                              <Star className='text-amber-400 fill-amber-400' aria-hidden='true' size={16} />
+                              <Star
+                                className='fill-amber-400 text-amber-400'
+                                aria-hidden='true'
+                                size={16}
+                              />
                               Đã đánh giá
                             </Button>
                           ) : shouldFindAnotherMentor ? (
@@ -706,10 +710,18 @@ export default function UserBookingsPage() {
       <ReviewFormModal
         open={!!activeReviewBooking}
         onOpenChange={(open) => !open && setActiveReviewBooking(null)}
-        initialData={activeReview ? { rating: activeReview.rating, comment: activeReview.comment || '' } : undefined}
+        initialData={
+          activeReview
+            ? { rating: activeReview.rating, comment: activeReview.comment || '' }
+            : undefined
+        }
         onSubmit={handleReviewSubmit}
         isSubmitting={createReviewMutation.isPending || updateReviewMutation.isPending}
-        title={activeReviewBooking ? `Đánh giá mentor ${activeReviewBooking.mentorName}` : 'Viết đánh giá'}
+        title={
+          activeReviewBooking
+            ? `Đánh giá mentor ${activeReviewBooking.mentorName}`
+            : 'Viết đánh giá'
+        }
         isExpired={isReviewExpired}
         submitError={reviewSubmitError}
         onDelete={activeReview ? handleDeleteReview : undefined}

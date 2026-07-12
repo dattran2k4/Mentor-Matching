@@ -11,7 +11,7 @@ export function ReviewRatingSummary({ summary }: ReviewRatingSummaryProps) {
   return (
     <div className='flex flex-col gap-6 md:flex-row md:items-center md:gap-12'>
       <div className='flex flex-col items-center justify-center text-center md:w-32'>
-        <span className='text-ink text-5xl font-bold leading-none tracking-tight'>
+        <span className='text-ink text-5xl leading-none font-bold tracking-tight'>
           {averageRating.toFixed(1)}
         </span>
         <div className='mt-2 mb-1'>
@@ -29,7 +29,7 @@ export function ReviewRatingSummary({ summary }: ReviewRatingSummaryProps) {
 
           return (
             <div key={star} className='flex items-center gap-3 text-sm'>
-              <span className='w-12 text-slate-600 font-medium'>{star} sao</span>
+              <span className='w-12 font-medium text-slate-600'>{star} sao</span>
               <div className='relative h-2 flex-1 overflow-hidden rounded-full bg-slate-100'>
                 <div
                   className='absolute top-0 left-0 h-full rounded-full bg-amber-400 transition-all duration-500'
