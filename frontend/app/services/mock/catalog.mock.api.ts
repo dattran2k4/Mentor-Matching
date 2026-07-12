@@ -137,5 +137,24 @@ export const mockCatalogApi = {
     const index = mockSubjects.findIndex(s => s.id === id)
     if (index > -1) mockSubjects.splice(index, 1)
     return buildSuccessResponse(undefined, 'Subject deleted successfully')
+  },
+  async createGrade(data: import('@/types/api/catalog').CreateGradeRequest): Promise<ApiResponse<import('@/types/api/catalog').CatalogGradeApiResponse>> {
+    await delay()
+    const newGrade = { id: Date.now(), ...data }
+    mockGrades.push(newGrade)
+    return buildSuccessResponse(newGrade, 'Grade created successfully')
+  },
+  async updateGrade(id: number, data: import('@/types/api/catalog').UpdateGradeRequest): Promise<ApiResponse<import('@/types/api/catalog').CatalogGradeApiResponse>> {
+    await delay()
+    const index = mockGrades.findIndex(g => g.id === id)
+    if (index === -1) throw new Error('Grade not found')
+    mockGrades[index] = { ...mockGrades[index], ...data }
+    return buildSuccessResponse(mockGrades[index], 'Grade updated successfully')
+  },
+  async deleteGrade(id: number): Promise<ApiResponse<void>> {
+    await delay()
+    const index = mockGrades.findIndex(g => g.id === id)
+    if (index > -1) mockGrades.splice(index, 1)
+    return buildSuccessResponse(undefined, 'Grade deleted successfully')
   }
 }

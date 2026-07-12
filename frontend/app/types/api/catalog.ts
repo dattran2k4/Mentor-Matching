@@ -36,3 +36,13 @@ export type UpdateSubjectRequest = {
   name: string
   description?: string
 }
+
+export type CreateGradeRequest = {
+  name: string
+  levelGroup: GradeLevelGroupApiResponse
+}
+
+export type UpdateGradeRequest = {
+  name: string
+  levelGroup: GradeLevelGroupApiResponse
+}

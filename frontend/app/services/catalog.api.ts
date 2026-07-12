@@ -6,7 +6,8 @@ import type { ApiResponse } from '@/types/api/common'
 
 const CATALOG_ENDPOINTS = {
   options: 'catalog/options',
-  adminSubjects: 'admin/catalog/subjects'
+  adminSubjects: 'admin/catalog/subjects',
+  adminGrades: 'admin/catalog/grades'
 } as const
 
 const defaultCatalogApi = {
@@ -20,7 +21,16 @@ const defaultCatalogApi = {
     (await http.put<ApiResponse<import('@/types/api/catalog').CatalogSubjectApiResponse>>(`${CATALOG_ENDPOINTS.adminSubjects}/${id}`, data)).data,
 
   deleteSubject: async (id: number): Promise<ApiResponse<void>> =>
-    (await http.delete<ApiResponse<void>>(`${CATALOG_ENDPOINTS.adminSubjects}/${id}`)).data
+    (await http.delete<ApiResponse<void>>(`${CATALOG_ENDPOINTS.adminSubjects}/${id}`)).data,
+
+  createGrade: async (data: import('@/types/api/catalog').CreateGradeRequest): Promise<ApiResponse<import('@/types/api/catalog').CatalogGradeApiResponse>> =>
+    (await http.post<ApiResponse<import('@/types/api/catalog').CatalogGradeApiResponse>>(CATALOG_ENDPOINTS.adminGrades, data)).data,
+
+  updateGrade: async (id: number, data: import('@/types/api/catalog').UpdateGradeRequest): Promise<ApiResponse<import('@/types/api/catalog').CatalogGradeApiResponse>> =>
+    (await http.put<ApiResponse<import('@/types/api/catalog').CatalogGradeApiResponse>>(`${CATALOG_ENDPOINTS.adminGrades}/${id}`, data)).data,
+
+  deleteGrade: async (id: number): Promise<ApiResponse<void>> =>
+    (await http.delete<ApiResponse<void>>(`${CATALOG_ENDPOINTS.adminGrades}/${id}`)).data
 }
 
 export const catalogApi = env.useMock ? mockCatalogApi : defaultCatalogApi
