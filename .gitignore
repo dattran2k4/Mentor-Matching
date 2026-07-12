@@ -38,3 +38,7 @@ codex-skills/
 
 # Local planning documents
 /task/
+#doc
+*.docx
+report_tools/
+*.png
