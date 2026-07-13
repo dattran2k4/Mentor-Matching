@@ -1,15 +1,19 @@
 import { CheckCircle2, Trash2 } from 'lucide-react'
+import { useNavigate } from 'react-router'
 
-import { NotificationStatus, type Notification } from '@/types/models/notification'
+import { path } from '@/config/path'
+import { NotificationStatus, NotificationType, type Notification } from '@/types/models/notification'
 import { cn } from '@/utils/cn'
 
 interface NotificationItemProps {
   notification: Notification
   onMarkAsRead?: (id: string) => void
   onDelete?: (id: string) => void
+  onClick?: () => void
 }
 
-export function NotificationItem({ notification, onMarkAsRead, onDelete }: NotificationItemProps) {
+export function NotificationItem({ notification, onMarkAsRead, onDelete, onClick }: NotificationItemProps) {
+  const navigate = useNavigate()
   const isUnread = notification.status === NotificationStatus.UNREAD
 
   const formattedDate = new Intl.DateTimeFormat('vi-VN', {
@@ -20,10 +24,47 @@ export function NotificationItem({ notification, onMarkAsRead, onDelete }: Notif
     year: 'numeric'
   }).format(new Date(notification.createdDate))
 
+  const handleItemClick = () => {
+    if (isUnread && onMarkAsRead) {
+      onMarkAsRead(notification.id)
+    }
+
+    let targetUrl = ''
+    switch (notification.type) {
+      case NotificationType.REVIEW_CREATED:
+        targetUrl = path.mentorProfile(notification.userId)
+        break
+      case NotificationType.BOOKING_CREATED:
+        targetUrl = path.mentorPanel.schedule
+        break
+      case NotificationType.BOOKING_CONFIRMED:
+      case NotificationType.BOOKING_REJECTED:
+      case NotificationType.BOOKING_COMPLETED:
+        targetUrl = path.user.bookings
+        break
+      default:
+        break
+    }
+
+    if (targetUrl) {
+      navigate(targetUrl)
+      onClick?.()
+    }
+  }
+
   return (
     <div
+      onClick={handleItemClick}
+      role='button'
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          handleItemClick()
+        }
+      }}
       className={cn(
-        'relative flex gap-3 rounded-lg border border-transparent p-4 transition-colors',
+        'relative flex gap-3 cursor-pointer rounded-lg border border-transparent p-4 transition-colors',
         isUnread ? 'bg-primary/5 hover:bg-primary/10' : 'bg-white hover:bg-slate-50'
       )}
     >
@@ -46,7 +87,10 @@ export function NotificationItem({ notification, onMarkAsRead, onDelete }: Notif
       <div className='flex flex-col gap-2'>
         {isUnread && onMarkAsRead && (
           <button
-            onClick={() => onMarkAsRead(notification.id)}
+            onClick={(e) => {
+              e.stopPropagation()
+              onMarkAsRead(notification.id)
+            }}
             className='text-slate-400 transition-colors hover:text-green-600'
             title='Đánh dấu đã đọc'
           >
@@ -55,7 +99,10 @@ export function NotificationItem({ notification, onMarkAsRead, onDelete }: Notif
         )}
         {onDelete && (
           <button
-            onClick={() => onDelete(notification.id)}
+            onClick={(e) => {
+              e.stopPropagation()
+              onDelete(notification.id)
+            }}
             className='text-slate-400 transition-colors hover:text-red-600'
             title='Xóa thông báo'
           >

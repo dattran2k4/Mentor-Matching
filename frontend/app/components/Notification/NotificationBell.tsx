@@ -87,6 +87,7 @@ export function NotificationBell() {
                       key={notification.id}
                       notification={notification}
                       onMarkAsRead={handleMarkAsRead}
+                      onClick={() => setIsOpen(false)}
                     />
                   ))}
                 </div>
