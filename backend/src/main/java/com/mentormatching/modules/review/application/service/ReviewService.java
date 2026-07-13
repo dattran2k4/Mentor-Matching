@@ -27,6 +27,7 @@ import com.mentormatching.modules.review.application.port.out.ReviewBookingLooku
 import com.mentormatching.modules.review.application.port.out.ReviewMentorLookupPort;
 import com.mentormatching.modules.review.application.port.out.ReviewRepositoryPort;
 import com.mentormatching.modules.review.application.port.out.ReviewUserLookupPort;
+import com.mentormatching.modules.review.application.port.out.ReviewNotificationPort;
 import com.mentormatching.modules.review.domain.Review;
 import com.mentormatching.shared.exception.InvalidDataException;
 import com.mentormatching.shared.exception.ResourceNotFoundException;
@@ -39,15 +40,18 @@ public class ReviewService implements CreateReviewUseCase, GetReviewDetailUseCas
     private final ReviewBookingLookupPort reviewBookingLookupPort;
     private final ReviewUserLookupPort reviewUserLookupPort;
     private final ReviewMentorLookupPort reviewMentorLookupPort;
+    private final ReviewNotificationPort reviewNotificationPort;
 
     public ReviewService(ReviewRepositoryPort reviewRepositoryPort,
                          ReviewBookingLookupPort reviewBookingLookupPort,
                          ReviewUserLookupPort reviewUserLookupPort,
-                         ReviewMentorLookupPort reviewMentorLookupPort) {
+                         ReviewMentorLookupPort reviewMentorLookupPort,
+                         ReviewNotificationPort reviewNotificationPort) {
         this.reviewRepositoryPort = reviewRepositoryPort;
         this.reviewBookingLookupPort = reviewBookingLookupPort;
         this.reviewUserLookupPort = reviewUserLookupPort;
         this.reviewMentorLookupPort = reviewMentorLookupPort;
+        this.reviewNotificationPort = reviewNotificationPort;
     }
 
     @Override
@@ -77,6 +81,12 @@ public class ReviewService implements CreateReviewUseCase, GetReviewDetailUseCas
         );
 
         Review savedReview = reviewRepositoryPort.save(review);
+        
+        Long mentorUserId = reviewMentorLookupPort.getUserId(booking.getMentorId());
+        if (mentorUserId != null) {
+            reviewNotificationPort.notifyReviewCreated(mentorUserId, savedReview.getRating());
+        }
+
         return savedReview.getId();
     }
 

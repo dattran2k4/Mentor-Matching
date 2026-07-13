@@ -18,7 +18,7 @@ export function NotificationBell() {
 
   // Fetch only top 5 recent notifications for the dropdown
   const { data: notificationsData, isLoading } = useNotificationsQuery({ page: 1, size: 5 })
-  const notifications = notificationsData?.content || []
+  const notifications = notificationsData?.data || []
 
   const markAsReadMutation = useMarkAsReadMutation()
 

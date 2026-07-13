@@ -15,7 +15,7 @@ export default function NotificationsPage() {
   const size = 10
 
   const { data: notificationsData, isLoading } = useNotificationsQuery({ page, size })
-  const notifications = notificationsData?.content || []
+  const notifications = notificationsData?.data || []
   const totalPages = notificationsData?.totalPages || 0
 
   const markAsReadMutation = useMarkAsReadMutation()
