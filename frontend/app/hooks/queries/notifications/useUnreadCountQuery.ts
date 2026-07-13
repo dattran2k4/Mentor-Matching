@@ -10,7 +10,6 @@ export function useUnreadCountQuery() {
   return useQuery({
     queryKey: QUERY_KEYS.notification.unreadCount,
     queryFn: async () => (await notificationApi.getUnreadCount()).data,
-    enabled: Boolean(accessToken),
-    refetchInterval: 30000 // Poll every 30 seconds for new notifications
+    enabled: Boolean(accessToken)
   })
 }

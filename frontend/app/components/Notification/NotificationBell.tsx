@@ -7,14 +7,18 @@ import { NotificationItem } from './NotificationItem'
 import { useMarkAsReadMutation } from '@/hooks/queries/notifications/useMarkAsReadMutation'
 import { useNotificationsQuery } from '@/hooks/queries/notifications/useNotificationsQuery'
 import { useUnreadCountQuery } from '@/hooks/queries/notifications/useUnreadCountQuery'
+import { useNotificationWebsocket } from '@/hooks/useNotificationWebsocket'
 import { cn } from '@/utils/cn'
 
 export function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
 
+  // Khởi chạy kết nối websocket để bắt sự kiện real-time
+  useNotificationWebsocket()
+
   const { data: unreadCountData } = useUnreadCountQuery()
-  const unreadCount = unreadCountData?.count || 0
+  const unreadCount = typeof unreadCountData === 'number' ? unreadCountData : 0
 
   // Fetch only top 5 recent notifications for the dropdown
   const { data: notificationsData, isLoading } = useNotificationsQuery({ page: 1, size: 5 })

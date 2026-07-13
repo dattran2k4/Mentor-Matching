@@ -41,7 +41,21 @@ public class NotificationService implements NotificationUseCases {
                 LocalDateTime.now()
         );
         Notification savedNotification = notificationRepositoryPort.save(notification);
-        notificationRealtimePort.sendNotification(savedNotification);
+        
+        // Defer sending WebSocket message until AFTER the database transaction commits.
+        // This prevents the frontend from fetching the notification before it is visible in the database.
+        if (org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive()) {
+            org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+                new org.springframework.transaction.support.TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        notificationRealtimePort.sendNotification(savedNotification);
+                    }
+                }
+            );
+        } else {
+            notificationRealtimePort.sendNotification(savedNotification);
+        }
     }
 
     @Override

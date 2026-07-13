@@ -169,15 +169,7 @@ export function ReviewFormModal({
                 </p>
               )}
             </div>
-            <Button
-              type='button'
-              className='h-11 min-w-[120px] rounded-2xl px-6 text-base'
-              onClick={handleClose}
-              variant='outline'
-              disabled={isSubmitting}
-            >
-              Hủy
-            </Button>
+
             {!isExpired && (
               <Button
                 type='submit'
