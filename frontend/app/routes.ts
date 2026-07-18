@@ -8,7 +8,8 @@ export default [
     route('become-mentor', 'routes/become-mentor.tsx'),
     route('mentor-profile/:id', 'routes/mentor-profile.tsx'),
     route('payment/success', 'routes/payment/success.tsx'),
-    route('payment/cancel', 'routes/payment/cancel.tsx')
+    route('payment/cancel', 'routes/payment/cancel.tsx'),
+    route('notifications', 'routes/notifications.tsx')
   ]),
 
   // User dashboard — /user/*

@@ -13,5 +13,6 @@ public enum NotificationType {
     PAYMENT_REFUNDED,
     MENTOR_APPROVED,
     MENTOR_REJECTED,
+    REVIEW_CREATED,
     SYSTEM
 }
