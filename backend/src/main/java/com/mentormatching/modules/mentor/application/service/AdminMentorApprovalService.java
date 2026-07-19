@@ -4,7 +4,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.mentormatching.modules.mentor.application.dto.AdminMentorDetail;
-import com.mentormatching.modules.mentor.application.dto.ReviewMentorApprovalAction;
 import com.mentormatching.modules.mentor.application.dto.ReviewMentorApprovalCommand;
 import com.mentormatching.modules.mentor.application.port.in.ReviewMentorApprovalUseCase;
 import com.mentormatching.modules.mentor.application.port.out.MentorProfileRepositoryPort;
@@ -37,11 +36,14 @@ public class AdminMentorApprovalService implements ReviewMentorApprovalUseCase {
         MentorProfile mentorProfile = mentorProfileRepositoryPort.findById(command.mentorId())
                 .orElseThrow(() -> new ResourceNotFoundException("Mentor profile not found"));
 
-        if (command.action() == ReviewMentorApprovalAction.APPROVE) {
-            ensureVerificationApproved(mentorProfile.getId());
-            mentorProfile.approve(command.adminUserId(), command.approvalNote());
-        } else {
-            mentorProfile.reject(command.approvalNote());
+        switch (command.action()) {
+            case APPROVE -> {
+                ensureVerificationApproved(mentorProfile.getId());
+                mentorProfile.approve(command.adminUserId(), command.approvalNote());
+            }
+            case REJECT -> mentorProfile.reject(command.approvalNote());
+            case SUSPEND -> mentorProfile.suspend(command.approvalNote());
+            case REACTIVATE -> mentorProfile.reactivate();
         }
 
         mentorProfileRepositoryPort.save(mentorProfile);

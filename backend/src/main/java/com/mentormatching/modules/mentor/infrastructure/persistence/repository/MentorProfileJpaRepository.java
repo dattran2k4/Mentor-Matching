@@ -37,11 +37,13 @@ public interface MentorProfileJpaRepository extends JpaRepository<MentorProfileJ
                    mentor.major as major,
                    mentor.meetingType as meetingType,
                    mentor.approvalStatus as approvalStatus,
+                   verification.verificationStatus as verificationStatus,
                    mentor.createdAt as createdAt,
                    (select min(ms.pricePerHour) from MentorSubjectJpaEntity ms where ms.mentorId = mentor.id and ms.active = true) as minPrice
             from MentorProfileJpaEntity mentor
             join UserJpaEntity user on user.id = mentor.userId
             left join DistrictJpaEntity district on district.id = mentor.currentDistrictId
+            left join MentorVerificationJpaEntity verification on verification.mentorId = mentor.id
             where (:approvalStatus is null or mentor.approvalStatus = :approvalStatus)
               and (:gender is null or mentor.gender = :gender)
               and (:meetingType is null or mentor.meetingType = :meetingType)

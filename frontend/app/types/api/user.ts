@@ -1,4 +1,4 @@
-import type { Gender } from '@/types/api/common'
+import type { Gender, PageQueryParams, PageResponse } from '@/types/api/common'
 import type { UserStatus } from '@/types/models/user'
 
 export type UserRoleApiResponse = 'LEARNER' | 'MENTOR' | 'ADMIN' | 'MANAGER'
@@ -39,4 +39,37 @@ export type UpdateCurrentLearnerProfileRequest = {
   schoolName?: string | null
   gradeId?: number | null
   learningGoal?: string | null
+}
+
+export type AdminUserListItemApiResponse = {
+  id: number
+  fullName: string
+  email: string
+  phone: string | null
+  role: UserRoleApiResponse
+  userType: UserTypeApiResponse | null
+  status: UserStatus
+  createdAt: string | null
+}
+
+export type AdminUserDetailApiResponse = AdminUserListItemApiResponse & {
+  totalBookings: number
+  totalSpent: number
+}
+
+export type AdminUserListPageApiResponse = PageResponse<AdminUserListItemApiResponse>
+
+export type GetAdminUsersQueryParams = PageQueryParams<
+  string,
+  {
+    search?: string
+    role?: UserRoleApiResponse
+    status?: UserStatus
+  }
+>
+
+export type UpdateUserStatusActionApiRequest = 'BAN' | 'ACTIVATE'
+
+export type UpdateUserStatusRequest = {
+  action: UpdateUserStatusActionApiRequest
 }

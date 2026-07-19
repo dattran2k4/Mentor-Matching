@@ -3,9 +3,11 @@ import {
   AlertTriangle,
   ArrowRight,
   BookOpenCheck,
+  DollarSign,
   FileWarning,
   Settings2,
   ShieldCheck,
+  UserPlus,
   Users
 } from 'lucide-react'
 
@@ -20,7 +22,11 @@ import { Badge } from '@/components/ui/badge'
 import { buttonVariants } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { path } from '@/config/path'
+import { DailyTrendChart } from '@/features/admin/dashboard/components/DailyTrendChart'
+import { useAdminStatsOverviewQuery } from '@/hooks/queries/admin/useAdminStatsOverviewQuery'
+import { useAdminStatsTimeseriesQuery } from '@/hooks/queries/admin/useAdminStatsTimeseriesQuery'
 import { adminDashboardSummary, adminQueueItems, adminReports } from '@/mocks/admin-workspace'
+import { formatPrice } from '@/utils/format'
 import { cn } from '@/utils/cn'
 
 const quickLinks = [
@@ -69,11 +75,76 @@ export function meta() {
 export default function AdminDashboardPage() {
   const highlightedReports = adminReports.filter((report) => report.status !== 'CLOSED').slice(0, 2)
 
+  const { data: statsOverview } = useAdminStatsOverviewQuery()
+  const { data: statsTimeseries } = useAdminStatsTimeseriesQuery()
+
+  const bookingTrendData = (statsTimeseries ?? []).map((point) => ({
+    date: point.date,
+    value: point.bookingsCount
+  }))
+  const revenueTrendData = (statsTimeseries ?? []).map((point) => ({
+    date: point.date,
+    value: point.revenue
+  }))
+
   return (
     <DashboardPage
       description='Ưu tiên hàng chờ duyệt, báo cáo mở và các tín hiệu vận hành ảnh hưởng trực tiếp đến marketplace.'
       title='Tổng quan Admin'
     >
+      <WorkspacePanel
+        description='Số liệu tăng trưởng người dùng, booking và doanh thu trong 30 ngày gần nhất.'
+        title='Thống kê tổng quan'
+      >
+        <div className='grid gap-4 xl:grid-cols-4'>
+          <WorkspaceMetricCard
+            helper={statsOverview ? `Từ ${statsOverview.from} đến ${statsOverview.to}` : undefined}
+            icon={UserPlus}
+            label='Người dùng mới'
+            value={statsOverview ? statsOverview.newUsersCount : '—'}
+          />
+          <WorkspaceMetricCard
+            helper='Mentor đăng ký mới trong khoảng thời gian'
+            icon={Users}
+            label='Mentor mới'
+            value={statsOverview ? statsOverview.newMentorsCount : '—'}
+          />
+          <WorkspaceMetricCard
+            helper={
+              statsOverview
+                ? `${statsOverview.completedBookings}/${statsOverview.totalBookings} booking hoàn thành`
+                : undefined
+            }
+            icon={BookOpenCheck}
+            label='Tỷ lệ hoàn thành Booking'
+            tone='success'
+            value={statsOverview ? `${Math.round(statsOverview.completionRate * 100)}%` : '—'}
+          />
+          <WorkspaceMetricCard
+            helper='Tổng giao dịch đã thanh toán qua Stripe'
+            icon={DollarSign}
+            label='Doanh thu'
+            tone='warning'
+            value={statsOverview ? formatPrice(statsOverview.totalRevenue) : '—'}
+          />
+        </div>
+
+        <div className='grid gap-4 xl:grid-cols-2'>
+          <DailyTrendChart
+            color='var(--primary)'
+            data={bookingTrendData}
+            title='Booking theo ngày'
+            valueFormatter={(value) => String(value)}
+          />
+          <DailyTrendChart
+            color='var(--secondary)'
+            data={revenueTrendData}
+            title='Doanh thu theo ngày'
+            valueFormatter={(value) => formatPrice(value)}
+          />
+        </div>
+      </WorkspacePanel>
+
       <WorkspacePanel
         title='Cần xử lý hôm nay'
         description='Đưa các đầu việc cần quyết định lên trước metric để admin biết nên mở màn hình nào ngay.'

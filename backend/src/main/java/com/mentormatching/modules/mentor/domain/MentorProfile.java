@@ -152,6 +152,25 @@ public class MentorProfile {
         this.approvedAt = null;
     }
 
+    public void suspend(String approvalNote) {
+        if (approvalStatus != MentorApprovalStatus.APPROVED) {
+            throw new InvalidDataException("Only approved mentor profile can be suspended");
+        }
+        if (approvalNote == null || approvalNote.isBlank()) {
+            throw new InvalidDataException("Approval note is required when suspending mentor");
+        }
+        this.approvalStatus = MentorApprovalStatus.SUSPENDED;
+        this.approvalNote = approvalNote.trim();
+    }
+
+    public void reactivate() {
+        if (approvalStatus != MentorApprovalStatus.SUSPENDED) {
+            throw new InvalidDataException("Only suspended mentor profile can be reactivated");
+        }
+        this.approvalStatus = MentorApprovalStatus.APPROVED;
+        this.approvalNote = null;
+    }
+
     private void validateExperienceYears(Integer experienceYears) {
         if (experienceYears != null && experienceYears < 0) {
             throw new InvalidDataException("Experience years must be greater than or equal to 0");

@@ -219,7 +219,7 @@ public class MentorReadPersistenceAdapter implements MentorReadRepositoryPort {
                 projection.getAvatarUrl(), projection.getGender(), projection.getHeadline(),
                 projection.getExperienceYears(), projection.getCurrentPosition(), projection.getWorkplace(),
                 projection.getEducation(), projection.getMajor(), projection.getMeetingType(),
-                projection.getApprovalStatus(), projection.getMinPrice(), projection.getCreatedAt());
+                projection.getApprovalStatus(), projection.getVerificationStatus(), projection.getMinPrice(), projection.getCreatedAt());
     }
 
     private AdminMentorDetail toAdminDetail(AdminMentorDetailProjection projection) {

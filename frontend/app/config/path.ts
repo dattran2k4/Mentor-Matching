@@ -29,6 +29,7 @@ export const path = {
     root: '/admin',
     users: '/admin/users',
     mentors: '/admin/mentors',
+    bookings: '/admin/bookings',
     catalog: '/admin/catalog',
     reports: '/admin/reports',
     settings: '/admin/settings'
