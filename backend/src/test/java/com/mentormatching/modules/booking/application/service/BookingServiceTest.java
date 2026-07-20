@@ -2,6 +2,7 @@ package com.mentormatching.modules.booking.application.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -17,6 +18,7 @@ import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import com.mentormatching.modules.booking.application.dto.AdminForceCancelBookingCommand;
 import com.mentormatching.modules.booking.application.dto.BookingMentorSnapshot;
 import com.mentormatching.modules.booking.application.dto.BookingScheduleBlock;
 import com.mentormatching.modules.booking.application.dto.RejectBookingByMentorCommand;
@@ -31,6 +33,7 @@ import com.mentormatching.modules.booking.domain.BookingMeetingType;
 import com.mentormatching.modules.booking.domain.BookingRestoreData;
 import com.mentormatching.modules.booking.domain.BookingStatus;
 import com.mentormatching.modules.mentor.domain.MeetingType;
+import com.mentormatching.modules.payment.application.port.out.PaymentCheckoutPort;
 import com.mentormatching.modules.payment.application.port.out.PaymentRepositoryPort;
 import com.mentormatching.modules.payment.domain.Payment;
 import com.mentormatching.modules.payment.domain.PaymentMethod;
@@ -48,6 +51,7 @@ class BookingServiceTest {
     private BookingMentorSubjectLookupPort bookingMentorSubjectLookupPort;
     private BookingAvailabilityLookupPort bookingAvailabilityLookupPort;
     private PaymentRepositoryPort paymentRepositoryPort;
+    private PaymentCheckoutPort paymentCheckoutPort;
     private BookingNotificationPort bookingNotificationPort;
     private BookingService bookingService;
 
@@ -59,10 +63,11 @@ class BookingServiceTest {
         bookingMentorSubjectLookupPort = mock(BookingMentorSubjectLookupPort.class);
         bookingAvailabilityLookupPort = mock(BookingAvailabilityLookupPort.class);
         paymentRepositoryPort = mock(PaymentRepositoryPort.class);
+        paymentCheckoutPort = mock(PaymentCheckoutPort.class);
         bookingNotificationPort = mock(BookingNotificationPort.class);
         bookingService = new BookingService(bookingRepositoryPort, bookingUserLookupPort, bookingMentorLookupPort,
                 bookingMentorSubjectLookupPort, bookingAvailabilityLookupPort, paymentRepositoryPort,
-                bookingNotificationPort);
+                paymentCheckoutPort, bookingNotificationPort);
     }
 
     @Test
@@ -212,6 +217,74 @@ class BookingServiceTest {
                 new BookingScheduleBlock(pending.getBookingDate(), pending.getStartTime(), pending.getEndTime()),
                 new BookingScheduleBlock(confirmed.getBookingDate(), confirmed.getStartTime(),
                         confirmed.getEndTime())), result);
+    }
+
+    @Test
+    void forceCancelBookingCancelsPendingBookingWithoutRefundWhenNotPaid() {
+        AdminForceCancelBookingCommand command = new AdminForceCancelBookingCommand(1L, 100L,
+                "  Duplicate booking created by mistake  ");
+        Booking booking = pendingBooking(10L);
+
+        when(bookingRepositoryPort.findById(100L)).thenReturn(Optional.of(booking));
+        when(bookingRepositoryPort.save(booking)).thenReturn(booking);
+        when(paymentRepositoryPort.findByBookingId(100L)).thenReturn(Optional.empty());
+
+        bookingService.forceCancelBooking(command);
+
+        assertEquals(BookingStatus.CANCELLED, booking.getStatus());
+        assertEquals(1L, booking.getCancelledBy());
+        assertEquals("Duplicate booking created by mistake", booking.getCancelReason());
+        verify(bookingRepositoryPort).save(booking);
+        verify(paymentCheckoutPort, never()).refundPayment(any());
+    }
+
+    @Test
+    void forceCancelBookingRefundsPaidPayment() {
+        AdminForceCancelBookingCommand command = new AdminForceCancelBookingCommand(1L, 100L, "Mentor no-show");
+        Booking booking = confirmedFutureBooking(10L);
+        Payment payment = paidPayment(100L);
+
+        when(bookingRepositoryPort.findById(100L)).thenReturn(Optional.of(booking));
+        when(bookingRepositoryPort.save(booking)).thenReturn(booking);
+        when(paymentRepositoryPort.findByBookingId(100L)).thenReturn(Optional.of(payment));
+        when(paymentRepositoryPort.save(payment)).thenReturn(payment);
+
+        bookingService.forceCancelBooking(command);
+
+        assertEquals(BookingStatus.CANCELLED, booking.getStatus());
+        assertEquals(PaymentStatus.REFUNDED, payment.getStatus());
+        verify(paymentCheckoutPort).refundPayment(payment);
+        verify(paymentRepositoryPort).save(payment);
+    }
+
+    @Test
+    void forceCancelBookingThrowsWhenBookingIsAlreadyCompleted() {
+        AdminForceCancelBookingCommand command = new AdminForceCancelBookingCommand(1L, 100L, "Reason");
+        Booking booking = Booking.restore(new BookingRestoreData(100L, 30L, "Student A", 10L, "Mentor A", 200L,
+                "Math", "Grade 9", LocalDate.now().minusDays(1), LocalTime.of(9, 0), LocalTime.of(10, 0),
+                new BigDecimal("250000"), new BigDecimal("250000"), BookingMeetingType.ONLINE, null, null,
+                BookingStatus.COMPLETED, "Need help", null, null, LocalDateTime.parse("2026-06-12T10:00:00"),
+                LocalDateTime.parse("2026-06-12T10:00:00")));
+
+        when(bookingRepositoryPort.findById(100L)).thenReturn(Optional.of(booking));
+
+        InvalidDataException exception = assertThrows(InvalidDataException.class,
+                () -> bookingService.forceCancelBooking(command));
+
+        assertEquals("Booking in status COMPLETED cannot be force cancelled", exception.getMessage());
+        verify(bookingRepositoryPort, never()).save(booking);
+    }
+
+    @Test
+    void forceCancelBookingThrowsWhenBookingDoesNotExist() {
+        AdminForceCancelBookingCommand command = new AdminForceCancelBookingCommand(1L, 100L, "Reason");
+
+        when(bookingRepositoryPort.findById(100L)).thenReturn(Optional.empty());
+
+        ResourceNotFoundException exception = assertThrows(ResourceNotFoundException.class,
+                () -> bookingService.forceCancelBooking(command));
+
+        assertEquals("Booking not found", exception.getMessage());
     }
 
     private Booking pendingBooking(Long mentorId) {

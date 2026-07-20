@@ -24,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.mentormatching.modules.booking.application.dto.GetBookingsQuery;
 import com.mentormatching.modules.booking.application.dto.GetMentorBookingsQuery;
 import com.mentormatching.modules.booking.application.dto.GetMyBookingsQuery;
+import com.mentormatching.modules.booking.application.port.in.AdminForceCancelBookingUseCase;
 import com.mentormatching.modules.booking.application.port.in.CompleteBookingByMentorUseCase;
 import com.mentormatching.modules.booking.application.port.in.CreateBookingUseCase;
 import com.mentormatching.modules.booking.application.port.in.GetBookingsUseCase;
@@ -34,6 +35,7 @@ import com.mentormatching.modules.booking.domain.Booking;
 import com.mentormatching.modules.booking.domain.BookingMeetingType;
 import com.mentormatching.modules.booking.domain.BookingStatus;
 import com.mentormatching.modules.booking.presentation.dto.request.CreateBookingRequest;
+import com.mentormatching.modules.booking.presentation.dto.request.ForceCancelBookingRequest;
 import com.mentormatching.modules.booking.presentation.dto.request.RejectBookingRequest;
 import com.mentormatching.modules.booking.presentation.dto.response.BookingResponse;
 import com.mentormatching.modules.booking.presentation.dto.response.CreateBookingResponse;
@@ -58,6 +60,7 @@ public class BookingController {
     private final GetMentorBookingsUseCase getMentorBookingsUseCase;
     private final RejectBookingByMentorUseCase rejectBookingByMentorUseCase;
     private final CompleteBookingByMentorUseCase completeBookingByMentorUseCase;
+    private final AdminForceCancelBookingUseCase adminForceCancelBookingUseCase;
     private final ApiResponseFactory apiResponseFactory;
 
     @PostMapping
@@ -130,5 +133,14 @@ public class BookingController {
                                                      @PathVariable Long bookingId) {
         completeBookingByMentorUseCase.completeBookingByMentor(principal.getId(), bookingId);
         return apiResponseFactory.success(null, "Complete booking successfully");
+    }
+
+    @PatchMapping("/{bookingId}/force-cancel")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ApiResponse<Void> forceCancelBooking(@AuthenticationPrincipal AuthenticatedPrincipal principal,
+                                                @PathVariable Long bookingId,
+                                                @Valid @RequestBody ForceCancelBookingRequest request) {
+        adminForceCancelBookingUseCase.forceCancelBooking(request.toCommand(principal, bookingId));
+        return apiResponseFactory.success(null, "Force cancel booking successfully");
     }
 }

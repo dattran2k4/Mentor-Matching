@@ -6,6 +6,7 @@ import java.time.LocalDateTime;
 import com.mentormatching.modules.mentor.domain.Gender;
 import com.mentormatching.modules.mentor.domain.MeetingType;
 import com.mentormatching.modules.mentor.domain.MentorApprovalStatus;
+import com.mentormatching.modules.mentor.domain.MentorVerificationStatus;
 
 public interface AdminMentorListItemProjection {
 
@@ -34,6 +35,8 @@ public interface AdminMentorListItemProjection {
     MeetingType getMeetingType();
 
     MentorApprovalStatus getApprovalStatus();
+
+    MentorVerificationStatus getVerificationStatus();
 
     BigDecimal getMinPrice();
 

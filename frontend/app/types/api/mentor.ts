@@ -34,7 +34,7 @@ export type MentorAchievementTypeApiResponse =
 
 export type MentorAvailabilityTypeApiResponse = 'RECURRING' | 'SPECIFIC_DATE'
 
-export type ReviewMentorApprovalActionApiRequest = 'APPROVE' | 'REJECT'
+export type ReviewMentorApprovalActionApiRequest = 'APPROVE' | 'REJECT' | 'SUSPEND' | 'REACTIVATE'
 
 export type ReviewMentorVerificationActionApiRequest = 'VERIFY' | 'REJECT'
 
@@ -279,6 +279,7 @@ export type AdminMentorListItemApiResponse = {
   major: string | null
   meetingType: MentorMeetingType | null
   approvalStatus: MentorApprovalStatusApiResponse
+  verificationStatus: MentorVerificationStatusApiResponse
   minPrice: number | null
   createdAt: string | null
 }

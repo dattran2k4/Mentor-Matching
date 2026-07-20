@@ -15,8 +15,10 @@ import com.mentormatching.modules.payment.application.port.out.PaymentCheckoutPo
 import com.mentormatching.modules.payment.domain.Payment;
 import com.mentormatching.shared.config.properties.AppStripeProperties;
 import com.stripe.exception.StripeException;
+import com.stripe.model.Refund;
 import com.stripe.model.checkout.Session;
 import com.stripe.net.RequestOptions;
+import com.stripe.param.RefundCreateParams;
 import com.stripe.param.checkout.SessionCreateParams;
 
 @Component
@@ -43,6 +45,25 @@ public class StripeCheckoutAdapter implements PaymentCheckoutPort {
             return new CheckoutSessionResult(session.getId(), session.getUrl(), toLocalDateTime(session.getExpiresAt()));
         } catch (StripeException ex) {
             throw new IllegalStateException("Failed to create Stripe checkout session", ex);
+        }
+    }
+
+    @Override
+    public void refundPayment(Payment payment) {
+        if (stripeProperties.secretKey().isBlank()) {
+            throw new IllegalStateException("Stripe secret key is not configured");
+        }
+        if (payment.getProviderTransactionId() == null || payment.getProviderTransactionId().isBlank()) {
+            throw new IllegalStateException("Payment has no Stripe payment intent to refund");
+        }
+
+        try {
+            RefundCreateParams params = RefundCreateParams.builder()
+                    .setPaymentIntent(payment.getProviderTransactionId())
+                    .build();
+            Refund.create(params, buildRequestOptions());
+        } catch (StripeException ex) {
+            throw new IllegalStateException("Failed to refund Stripe payment", ex);
         }
     }
 

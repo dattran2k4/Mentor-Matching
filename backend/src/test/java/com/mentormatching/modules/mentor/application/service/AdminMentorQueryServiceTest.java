@@ -49,7 +49,7 @@ class AdminMentorQueryServiceTest {
                 .data(List.of(new AdminMentorListItem(10L, 20L, "Nguyen Minh Anh",
                         "https://example.com/avatar.jpg", Gender.FEMALE, "Headline", 6, "Teacher",
                         "Mentor Matching", "HCMUS", "Mathematics", MeetingType.HYBRID,
-                        MentorApprovalStatus.PENDING, null, LocalDateTime.parse("2026-06-01T10:15:30"))))
+                        MentorApprovalStatus.PENDING, null, null, LocalDateTime.parse("2026-06-01T10:15:30"))))
                 .build();
 
         when(mentorReadRepositoryPort.findAdminMentors(query, null)).thenReturn(expected);
