@@ -9,6 +9,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier . --check",
     "format:write": "prettier . --write",
+    "preview": "vite preview",
     "start": "react-router-serve ./build/server/index.js",
     "test": "vitest run --passWithNoTests",
     "test:watch": "vitest",

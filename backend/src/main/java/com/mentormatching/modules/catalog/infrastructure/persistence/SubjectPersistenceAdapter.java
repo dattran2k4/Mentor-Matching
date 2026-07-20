@@ -41,4 +41,14 @@ public class SubjectPersistenceAdapter implements SubjectRepositoryPort {
     public List<Subject> findAll() {
         return subjectJpaRepository.findAll().stream().map(subjectPersistenceMapper::toDomain).toList();
     }
+
+    @Override
+    public boolean existsByNameIgnoreCase(String name) {
+        return subjectJpaRepository.existsByNameIgnoreCase(name);
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        subjectJpaRepository.deleteById(id);
+    }
 }
