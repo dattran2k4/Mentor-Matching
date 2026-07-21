@@ -93,6 +93,14 @@ public class Payment {
         touch();
     }
 
+    public void refund() {
+        if (status != PaymentStatus.PAID) {
+            throw new InvalidDataException("Only paid payment can be refunded");
+        }
+        this.status = PaymentStatus.REFUNDED;
+        touch();
+    }
+
     public boolean isPending() {
         return status == PaymentStatus.PENDING;
     }

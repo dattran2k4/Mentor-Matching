@@ -137,6 +137,71 @@ class AdminMentorApprovalServiceTest {
     }
 
     @Test
+    void reviewMentorApprovalSuspendsApprovedProfile() {
+        ReviewMentorApprovalCommand command = new ReviewMentorApprovalCommand(99L, 10L,
+                ReviewMentorApprovalAction.SUSPEND, "  Violates policy  ");
+        MentorProfile mentorProfile = approvedMentorProfile();
+        AdminMentorDetail expected = rejectedDetail();
+
+        when(mentorProfileRepositoryPort.findById(10L)).thenReturn(Optional.of(mentorProfile));
+        when(mentorProfileRepositoryPort.save(mentorProfile)).thenReturn(mentorProfile);
+        when(mentorReadRepositoryPort.findAdminMentorDetailById(10L)).thenReturn(Optional.of(expected));
+
+        AdminMentorDetail actual = adminMentorApprovalService.reviewMentorApproval(command);
+
+        assertSame(expected, actual);
+        assertEquals(MentorApprovalStatus.SUSPENDED, mentorProfile.getApprovalStatus());
+        assertEquals("Violates policy", mentorProfile.getApprovalNote());
+        verify(mentorProfileRepositoryPort).save(mentorProfile);
+    }
+
+    @Test
+    void reviewMentorApprovalThrowsWhenSuspendingNonApprovedProfile() {
+        ReviewMentorApprovalCommand command = new ReviewMentorApprovalCommand(99L, 10L,
+                ReviewMentorApprovalAction.SUSPEND, "Violates policy");
+        MentorProfile mentorProfile = pendingMentorProfile();
+
+        when(mentorProfileRepositoryPort.findById(10L)).thenReturn(Optional.of(mentorProfile));
+
+        InvalidDataException exception = assertThrows(InvalidDataException.class,
+                () -> adminMentorApprovalService.reviewMentorApproval(command));
+
+        assertEquals("Only approved mentor profile can be suspended", exception.getMessage());
+    }
+
+    @Test
+    void reviewMentorApprovalReactivatesSuspendedProfile() {
+        ReviewMentorApprovalCommand command = new ReviewMentorApprovalCommand(99L, 10L,
+                ReviewMentorApprovalAction.REACTIVATE, null);
+        MentorProfile mentorProfile = suspendedMentorProfile();
+        AdminMentorDetail expected = approvedDetail();
+
+        when(mentorProfileRepositoryPort.findById(10L)).thenReturn(Optional.of(mentorProfile));
+        when(mentorProfileRepositoryPort.save(mentorProfile)).thenReturn(mentorProfile);
+        when(mentorReadRepositoryPort.findAdminMentorDetailById(10L)).thenReturn(Optional.of(expected));
+
+        AdminMentorDetail actual = adminMentorApprovalService.reviewMentorApproval(command);
+
+        assertSame(expected, actual);
+        assertEquals(MentorApprovalStatus.APPROVED, mentorProfile.getApprovalStatus());
+        verify(mentorProfileRepositoryPort).save(mentorProfile);
+    }
+
+    @Test
+    void reviewMentorApprovalThrowsWhenReactivatingNonSuspendedProfile() {
+        ReviewMentorApprovalCommand command = new ReviewMentorApprovalCommand(99L, 10L,
+                ReviewMentorApprovalAction.REACTIVATE, null);
+        MentorProfile mentorProfile = approvedMentorProfile();
+
+        when(mentorProfileRepositoryPort.findById(10L)).thenReturn(Optional.of(mentorProfile));
+
+        InvalidDataException exception = assertThrows(InvalidDataException.class,
+                () -> adminMentorApprovalService.reviewMentorApproval(command));
+
+        assertEquals("Only suspended mentor profile can be reactivated", exception.getMessage());
+    }
+
+    @Test
     void reviewMentorApprovalThrowsWhenMentorProfileDoesNotExist() {
         ReviewMentorApprovalCommand command = new ReviewMentorApprovalCommand(99L, 10L,
                 ReviewMentorApprovalAction.APPROVE, null);
@@ -162,6 +227,14 @@ class AdminMentorApprovalServiceTest {
                 "Mathematics", MeetingType.HYBRID, MentorApprovalStatus.APPROVED, "Approved", 99L,
                 LocalDateTime.parse("2026-06-06T09:00:00"), LocalDateTime.parse("2026-06-01T10:15:30"),
                 LocalDateTime.parse("2026-06-06T09:00:00")));
+    }
+
+    private MentorProfile suspendedMentorProfile() {
+        return MentorProfile.restore(new MentorProfileRestoreData(10L, 20L, "https://example.com/avatar.jpg",
+                Gender.FEMALE, 1L, 3L, "Headline", "Intro", "Style", 6, "Teacher", "Mentor Matching", "HCMUS",
+                "Mathematics", MeetingType.HYBRID, MentorApprovalStatus.SUSPENDED, "Violates policy", 99L,
+                LocalDateTime.parse("2026-06-06T09:00:00"), LocalDateTime.parse("2026-06-01T10:15:30"),
+                LocalDateTime.parse("2026-06-07T09:00:00")));
     }
 
     private MentorVerification verifiedVerification() {

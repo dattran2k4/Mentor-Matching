@@ -6,4 +6,6 @@ import com.mentormatching.modules.payment.domain.Payment;
 public interface PaymentCheckoutPort {
 
     CheckoutSessionResult createCheckoutSession(Payment payment);
+
+    void refundPayment(Payment payment);
 }

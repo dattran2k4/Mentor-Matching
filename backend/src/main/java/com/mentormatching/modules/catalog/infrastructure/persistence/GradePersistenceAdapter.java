@@ -42,4 +42,14 @@ public class GradePersistenceAdapter implements GradeRepositoryPort {
     public List<Grade> findAll() {
         return gradeJpaRepository.findAll().stream().map(gradePersistenceMapper::toDomain).toList();
     }
+
+    @Override
+    public boolean existsByNameIgnoreCase(String name) {
+        return gradeJpaRepository.existsByNameIgnoreCase(name);
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        gradeJpaRepository.deleteById(id);
+    }
 }

@@ -8,7 +8,8 @@ export default [
     route('become-mentor', 'routes/become-mentor.tsx'),
     route('mentor-profile/:id', 'routes/mentor-profile.tsx'),
     route('payment/success', 'routes/payment/success.tsx'),
-    route('payment/cancel', 'routes/payment/cancel.tsx')
+    route('payment/cancel', 'routes/payment/cancel.tsx'),
+    route('notifications', 'routes/notifications.tsx')
   ]),
 
   // User dashboard — /user/*
@@ -16,8 +17,7 @@ export default [
     layout('layouts/user-layout.tsx', [
       index('routes/user/dashboard.tsx'),
       route('bookings', 'routes/user/bookings.tsx'),
-      route('favorites', 'routes/user/favorites.tsx'),
-      route('messages', 'routes/user/messages.tsx'),
+      route('payments', 'routes/user/payments.tsx'),
       route('profile', 'routes/user/profile.tsx')
     ])
   ]),
@@ -40,6 +40,8 @@ export default [
       index('routes/admin/dashboard.tsx'),
       route('users', 'routes/admin/users.tsx'),
       route('mentors', 'routes/admin/mentors.tsx'),
+      route('bookings', 'routes/admin/bookings.tsx'),
+      route('catalog', 'routes/admin/catalog.tsx'),
       route('reports', 'routes/admin/reports.tsx'),
       route('settings', 'routes/admin/settings.tsx')
     ])

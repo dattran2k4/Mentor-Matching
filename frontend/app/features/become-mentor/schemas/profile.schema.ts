@@ -14,6 +14,9 @@ export type BecomeMentorProfileFormValues = {
   experienceYears: string
   currentPosition?: string
   workplace?: string
+  education: string
+  major: string
+  meetingType: string
 }
 
 export const becomeMentorProfileSchema: z.ZodType<BecomeMentorProfileFormValues> = z.object({
@@ -26,6 +29,9 @@ export const becomeMentorProfileSchema: z.ZodType<BecomeMentorProfileFormValues>
   introduction: createRequiredStringSchema('Vui lòng nhập giới thiệu bản thân'),
   teachingStyle: createRequiredStringSchema('Vui lòng nhập phong cách giảng dạy'),
   experienceYears: createRequiredStringSchema('Vui lòng nhập số năm kinh nghiệm'),
-  currentPosition: z.string().trim().optional(),
-  workplace: z.string().trim().optional()
+  currentPosition: createRequiredStringSchema('Vui lòng nhập vị trí hiện tại'),
+  workplace: createRequiredStringSchema('Vui lòng nhập khu vực làm việc'),
+  education: createRequiredStringSchema('Vui lòng nhập học vấn'),
+  major: createRequiredStringSchema('Vui lòng nhập chuyên ngành'),
+  meetingType: createRequiredStringSchema('Vui lòng chọn hình thức dạy')
 })

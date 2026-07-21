@@ -42,6 +42,10 @@ export type BookingApiResponse = {
   updatedAt: string | null
 }
 
+export type ForceCancelBookingRequest = {
+  cancelReason: string
+}
+
 export type GetBookingsQueryParams = PageQueryParams<
   string,
   {

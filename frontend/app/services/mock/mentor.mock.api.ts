@@ -15,6 +15,7 @@ import type {
   GetAdminMentorsQueryParams,
   MentorsQueryParams,
   MentorAchievementDetailApiResponse,
+  MentorApprovalStatusApiResponse,
   MentorAvailabilityDetailApiResponse,
   MentorDetailApiResponse,
   MentorMeetingType,
@@ -157,6 +158,7 @@ const mentorListItems: AdminMentorListItemApiResponse[] = mentorDirectory.map((m
   major: mentor.major,
   meetingType: mentor.meetingType,
   approvalStatus: index === 0 ? 'APPROVED' : 'PENDING',
+  verificationStatus: index === 0 ? 'VERIFIED' : 'PENDING',
   minPrice: index === 0 ? 280000 : 320000,
   createdAt: mentor.createdAt
 }))
@@ -490,7 +492,7 @@ export const mockMentorApi = {
     currentMentorState = {
       ...currentMentorState,
       ...payload,
-      approvalStatus: 'PENDING',
+      approvalStatus: 'DRAFT',
       updatedAt: new Date().toISOString()
     }
 
@@ -964,7 +966,13 @@ export const mockMentorApi = {
     requireMockSession()
 
     const currentDetailResponse = await this.getAdminMentorDetail(mentorId)
-    const approvalStatus = payload.action === 'APPROVE' ? 'APPROVED' : 'REJECTED'
+    const approvalStatusByAction: Record<ReviewMentorApprovalRequest['action'], MentorApprovalStatusApiResponse> = {
+      APPROVE: 'APPROVED',
+      REJECT: 'REJECTED',
+      SUSPEND: 'SUSPENDED',
+      REACTIVATE: 'APPROVED'
+    }
+    const approvalStatus = approvalStatusByAction[payload.action]
     const nextDetail: AdminMentorDetailApiResponse = {
       ...currentDetailResponse.data,
       approvalStatus,

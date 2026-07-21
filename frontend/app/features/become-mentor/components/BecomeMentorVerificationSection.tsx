@@ -40,7 +40,7 @@ type BecomeMentorVerificationSectionProps = {
   onSubmit: (
     values: BecomeMentorVerificationFormValues,
     verification: CurrentMentorVerificationApiResponse
-  ) => void
+  ) => Promise<void> | void
   verificationFullName: string
 }
 
@@ -96,19 +96,15 @@ export function BecomeMentorVerificationSection({
         />
       )}
 
-      <form className='space-y-5' id={formId} onSubmit={verificationForm.onSubmit}>
+      <form className='mt-5 space-y-5' id={formId} onSubmit={verificationForm.onSubmit}>
         <div className='rounded-[24px] border border-blue-200 bg-blue-50/70 p-4'>
-          <div className='flex items-start gap-3'>
+          <div className='flex items-center gap-3'>
             <div className='text-primary flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white shadow-sm'>
               <Shield size={18} />
             </div>
             <div>
               <p className='text-sm font-semibold text-slate-900'>
                 Chỉ mentor đã được xác minh và phê duyệt mới hiển thị trên trang kết nối
-              </p>
-              <p className='mt-1 text-sm leading-6 text-slate-600'>
-                Ảnh giấy tờ sẽ được tải lên bảo mật, sau đó frontend giữ `mediaId` để gửi trong
-                request xác minh cuối cùng.
               </p>
             </div>
           </div>

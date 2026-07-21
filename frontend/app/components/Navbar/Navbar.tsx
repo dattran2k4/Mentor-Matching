@@ -1,11 +1,14 @@
-import { Bell, LogOut, Menu, X } from 'lucide-react'
+import { LogOut, Menu, X } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
 
 import { BrandLogo } from '@/components/BrandLogo'
+import { NotificationBell } from '@/components/Notification/NotificationBell'
 import { buttonVariants } from '@/components/ui/button'
 import { path } from '@/config/path'
+import { ROLES } from '@/constants/roles'
+import { useCurrentUserQuery } from '@/hooks/queries/auth/useCurrentUserQuery'
 import { useDashboardPath } from '@/hooks/useDashboardPath'
 import { useAuthStore } from '@/stores/auth-store'
 import { cn } from '@/utils/cn'
@@ -17,7 +20,12 @@ const Navbar = () => {
 
   const accessToken = useAuthStore((state) => state.accessToken)
   const logout = useAuthStore((state) => state.logout)
+  const currentUserQuery = useCurrentUserQuery()
   const dashboardPath = useDashboardPath()
+  const userRoles = currentUserQuery.data?.roles ?? []
+  const hasMentorOrAdminRole = userRoles.includes(ROLES.MENTOR) || userRoles.includes(ROLES.ADMIN)
+  const showBecomeMentorLink =
+    !accessToken || (!currentUserQuery.isLoading && !hasMentorOrAdminRole)
 
   useEffect(() => {
     const handleScroll = () => {
@@ -66,21 +74,6 @@ const Navbar = () => {
           </>
         )}
       </NavLink>
-      {dashboardPath ? (
-        <NavLink to={dashboardPath} className={linkClass} onClick={() => setMobileOpen(false)}>
-          {({ isActive }) => (
-            <>
-              Bảng điều khiển
-              {isActive && (
-                <motion.div
-                  layoutId='underline'
-                  className='bg-primary absolute right-0 bottom-0 left-0 h-0.5 rounded-t-full'
-                />
-              )}
-            </>
-          )}
-        </NavLink>
-      ) : null}
     </>
   )
 
@@ -99,33 +92,23 @@ const Navbar = () => {
         </div>
 
         <div className='flex items-center gap-4'>
-          <Link
-            className={cn(
-              buttonVariants({
-                className: 'hidden rounded-full md:inline-flex',
-                variant: 'outline'
-              })
-            )}
-            to={path.becomeMentor}
-          >
-            Trở thành Mentor
-          </Link>
+          {showBecomeMentorLink ? (
+            <Link
+              className={cn(
+                buttonVariants({
+                  className: 'hidden rounded-full md:inline-flex',
+                  variant: 'outline'
+                })
+              )}
+              to={path.becomeMentor}
+            >
+              Trở thành Mentor
+            </Link>
+          ) : null}
 
           {accessToken ? (
             <>
-              <button
-                className={cn(
-                  buttonVariants({
-                    className: 'relative hidden rounded-full md:flex',
-                    size: 'icon',
-                    variant: 'outline'
-                  })
-                )}
-                type='button'
-              >
-                <Bell size={18} />
-                <span className='absolute top-2.5 right-2.5 h-2.5 w-2.5 rounded-full border-2 border-white bg-red-500' />
-              </button>
+              <NotificationBell />
               {dashboardPath ? (
                 <Link
                   className={cn(
@@ -195,13 +178,15 @@ const Navbar = () => {
             <div className='page-container'>
               <div className='flex flex-col gap-2'>{navLinks}</div>
               <div className='mt-5 flex flex-col gap-3 border-t border-slate-200/50 pt-5'>
-                <Link
-                  className={cn(buttonVariants({ className: 'rounded-xl', variant: 'outline' }))}
-                  to={path.becomeMentor}
-                  onClick={() => setMobileOpen(false)}
-                >
-                  Trở thành Mentor
-                </Link>
+                {showBecomeMentorLink ? (
+                  <Link
+                    className={cn(buttonVariants({ className: 'rounded-xl', variant: 'outline' }))}
+                    to={path.becomeMentor}
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    Trở thành Mentor
+                  </Link>
+                ) : null}
                 {accessToken ? (
                   <button
                     className={cn(

@@ -57,7 +57,9 @@ export function BecomeMentorProgressRail({ onSelectStep, steps }: BecomeMentorPr
               >
                 {step.label}
               </p>
-              <p className='mt-1 text-sm leading-6 text-slate-500'>{step.description}</p>
+              {step.description ? (
+                <p className='mt-1 text-sm leading-6 text-slate-500'>{step.description}</p>
+              ) : null}
             </div>
           </button>
         ))}

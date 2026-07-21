@@ -1,12 +1,13 @@
 import axios from 'axios'
 import { motion } from 'framer-motion'
 import {
+  BookOpenText,
   Calendar,
   Clock,
   ExternalLink,
   MapPin,
-  MessageSquare,
   Search,
+  Star,
   UserRound,
   Video,
   Wallet,
@@ -16,24 +17,31 @@ import { useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
 
 import { DashboardPage } from '@/components/DashboardPage'
-import { EmptyState } from '@/components/EmptyState'
 import { ScreenErrorState } from '@/components/ScreenErrorState'
 import { StatusBadge } from '@/components/StatusBadge'
+import { StatusFilterPills } from '@/components/StatusFilterPills'
 import { Badge } from '@/components/ui/badge'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { SuccessModal } from '@/components/ui/success-modal'
 import { path } from '@/config/path'
+import { BOOKING_STATUS_CONFIG, LEARNER_BOOKING_STATUS_FILTERS } from '@/constants/booking-status'
 import { useCurrentUserBookingsQuery } from '@/hooks/queries/booking/useCurrentUserBookingsQuery'
+import { useMyReviewsQuery } from '@/hooks/queries/review/useMyReviewsQuery'
 import { useCreatePaymentMutation } from '@/hooks/queries/payment/useCreatePaymentMutation'
-import type { BookingApiResponse } from '@/types/api/booking'
+import { useCreateReviewMutation } from '@/hooks/mutations/review/useCreateReviewMutation'
+import { useUpdateReviewMutation } from '@/hooks/mutations/review/useUpdateReviewMutation'
+import { useDeleteReviewMutation } from '@/hooks/mutations/review/useDeleteReviewMutation'
+import { ReviewFormModal, type ReviewFormData } from '@/features/review/components/ReviewFormModal'
+import type { BookingApiResponse, GetMyBookingsQueryParams } from '@/types/api/booking'
 import type { ErrorResponse } from '@/types/api/common'
 import type { PaymentApiResponse } from '@/types/api/payment'
 import type { PaymentStatus } from '@/types/models/booking'
 import { cn } from '@/utils/cn'
 import { formatPrice, formatShortBookingDate, formatTimeRange } from '@/utils/format'
 
-type BookingFilter = 'ALL' | 'UPCOMING' | 'PAYMENT_DUE' | 'COMPLETED' | 'CANCELLED'
+type BookingFilter = 'ALL' | (typeof LEARNER_BOOKING_STATUS_FILTERS)[number]
 
 type PaymentFeedback = {
   tone: 'success' | 'error'
@@ -50,11 +58,17 @@ type BookingFactProps = {
 
 const bookingFilters: Array<{ key: BookingFilter; label: string }> = [
   { key: 'ALL', label: 'Tất cả' },
-  { key: 'UPCOMING', label: 'Sắp tới' },
-  { key: 'PAYMENT_DUE', label: 'Cần thanh toán' },
-  { key: 'COMPLETED', label: 'Hoàn thành' },
-  { key: 'CANCELLED', label: 'Đã hủy' }
+  ...LEARNER_BOOKING_STATUS_FILTERS.map((status) => ({
+    key: status,
+    label: BOOKING_STATUS_CONFIG[status].label
+  }))
 ]
+
+function getBookingFilterLabel(filter: BookingFilter) {
+  if (filter === 'ALL') return 'tất cả'
+
+  return BOOKING_STATUS_CONFIG[filter].label.toLowerCase()
+}
 
 function getPaymentErrorMessage(error: unknown) {
   if (axios.isAxiosError<ErrorResponse>(error)) {
@@ -63,6 +77,15 @@ function getPaymentErrorMessage(error: unknown) {
   }
 
   return 'Không thể bắt đầu thanh toán lúc này.'
+}
+
+function getReviewErrorMessage(error: unknown) {
+  if (axios.isAxiosError<ErrorResponse>(error)) {
+    if (!error.response) return 'Không thể kết nối với máy chủ.'
+    return error.response.data?.message || 'Không thể gửi đánh giá lúc này.'
+  }
+
+  return 'Không thể gửi đánh giá lúc này.'
 }
 
 function getMeetingLabel(booking: BookingApiResponse) {
@@ -102,21 +125,6 @@ function getEffectivePaymentStatus(
   return null
 }
 
-function matchesFilter(booking: BookingApiResponse, filter: BookingFilter) {
-  switch (filter) {
-    case 'UPCOMING':
-      return booking.status === 'PENDING' || booking.status === 'CONFIRMED'
-    case 'PAYMENT_DUE':
-      return booking.status === 'PENDING'
-    case 'COMPLETED':
-      return booking.status === 'COMPLETED'
-    case 'CANCELLED':
-      return booking.status === 'CANCELLED' || booking.status === 'REJECTED'
-    default:
-      return true
-  }
-}
-
 function getPaymentPanelClass(booking: BookingApiResponse, paymentStatus: PaymentStatus | null) {
   if (paymentStatus === 'FAILED') {
     return 'border-red-200 bg-gradient-to-br from-red-50 to-white'
@@ -143,7 +151,7 @@ function getBookingMessage(booking: BookingApiResponse, paymentStatus: PaymentSt
   }
 
   if (booking.status === 'CONFIRMED') {
-    return 'Lịch học đã được xác nhận. Hãy kiểm tra thông tin và tham gia đúng giờ.'
+    return 'Lịch học đã được thanh toán. Hãy kiểm tra thông tin và tham gia đúng giờ.'
   }
 
   if (booking.status === 'COMPLETED') {
@@ -170,7 +178,7 @@ function BookingFact({ icon: Icon, label, value }: BookingFactProps) {
         </div>
         <div className='min-w-0 space-y-1'>
           <p className='text-muted text-xs'>{label}</p>
-          <p className='text-ink text-sm font-semibold break-words'>{value}</p>
+          <p className='text-ink text-sm font-semibold wrap-break-word'>{value}</p>
         </div>
       </div>
     </div>
@@ -205,15 +213,30 @@ export function meta() {
 
 export default function UserBookingsPage() {
   const [searchParams] = useSearchParams()
-  const bookingsQuery = useCurrentUserBookingsQuery()
-  const createPaymentMutation = useCreatePaymentMutation()
   const [activeFilter, setActiveFilter] = useState<BookingFilter>('ALL')
+  const bookingQueryParams = useMemo<GetMyBookingsQueryParams>(
+    () => ({
+      page: 1,
+      size: 100,
+      status: activeFilter === 'ALL' ? undefined : activeFilter
+    }),
+    [activeFilter]
+  )
+  const bookingsQuery = useCurrentUserBookingsQuery(bookingQueryParams)
+  const myReviewsQuery = useMyReviewsQuery()
+  const createPaymentMutation = useCreatePaymentMutation()
+  const createReviewMutation = useCreateReviewMutation()
+  const updateReviewMutation = useUpdateReviewMutation()
+  const deleteReviewMutation = useDeleteReviewMutation()
   const [searchQuery, setSearchQuery] = useState('')
   const [activePaymentBookingId, setActivePaymentBookingId] = useState<number | null>(null)
+  const [activeReviewBooking, setActiveReviewBooking] = useState<BookingApiResponse | null>(null)
   const [paymentSnapshots, setPaymentSnapshots] = useState<PaymentSnapshotMap>({})
   const [paymentFeedbackByBookingId, setPaymentFeedbackByBookingId] = useState<
     Record<number, PaymentFeedback>
   >({})
+  const [successModalMessage, setSuccessModalMessage] = useState<string | null>(null)
+  const [reviewSubmitError, setReviewSubmitError] = useState<string | null>(null)
   const createdBookingIdParam = searchParams.get('createdBookingId')
   const createdBookingId = createdBookingIdParam ? Number(createdBookingIdParam) : null
   const shouldShowCreatedBanner = searchParams.get('bookingCreated') === '1'
@@ -227,6 +250,16 @@ export default function UserBookingsPage() {
     [bookings, createdBookingId]
   )
 
+  const reviewByBookingId = useMemo(() => {
+    const map: Record<number, any> = {}
+    if (myReviewsQuery.data) {
+      myReviewsQuery.data.forEach((review) => {
+        map[review.bookingId] = review
+      })
+    }
+    return map
+  }, [myReviewsQuery.data])
+
   const filteredBookings = useMemo(() => {
     const normalizedQuery = searchQuery.trim().toLowerCase()
 
@@ -237,23 +270,9 @@ export default function UserBookingsPage() {
         booking.subjectName.toLowerCase().includes(normalizedQuery) ||
         booking.gradeName.toLowerCase().includes(normalizedQuery)
 
-      return matchesFilter(booking, activeFilter) && matchesSearch
+      return matchesSearch
     })
-  }, [activeFilter, bookings, searchQuery])
-
-  const filterCounts = useMemo(
-    () =>
-      bookingFilters.reduce<Record<BookingFilter, number>>(
-        (counts, filter) => {
-          counts[filter.key] = bookings.filter((booking) =>
-            matchesFilter(booking, filter.key)
-          ).length
-          return counts
-        },
-        {} as Record<BookingFilter, number>
-      ),
-    [bookings]
-  )
+  }, [bookings, searchQuery])
 
   const handleCreatePayment = (booking: BookingApiResponse) => {
     setActivePaymentBookingId(booking.id)
@@ -303,6 +322,75 @@ export default function UserBookingsPage() {
         }
       }
     )
+  }
+
+  const activeReview = activeReviewBooking ? reviewByBookingId[activeReviewBooking.id] : null
+  const isReviewExpired = activeReview
+    ? new Date(activeReview.createdAt).getTime() + 30 * 24 * 60 * 60 * 1000 < Date.now()
+    : false
+
+  const handleReviewSubmit = (data: ReviewFormData) => {
+    if (!activeReviewBooking) return
+    setReviewSubmitError(null)
+
+    if (activeReview) {
+      updateReviewMutation.mutate(
+        {
+          id: activeReview.id,
+          payload: { rating: data.rating, comment: data.comment }
+        },
+        {
+          onSuccess: () => {
+            setActiveReviewBooking(null)
+            setTimeout(() => {
+              setSuccessModalMessage('Cập nhật đánh giá thành công!')
+            }, 150)
+            void myReviewsQuery.refetch()
+          },
+          onError: (error) => {
+            setReviewSubmitError(getReviewErrorMessage(error))
+          }
+        }
+      )
+    } else {
+      createReviewMutation.mutate(
+        {
+          bookingId: activeReviewBooking.id,
+          rating: data.rating,
+          comment: data.comment
+        },
+        {
+          onSuccess: () => {
+            setActiveReviewBooking(null)
+            setTimeout(() => {
+              setSuccessModalMessage('Gửi đánh giá thành công!')
+            }, 150)
+            void myReviewsQuery.refetch()
+          },
+          onError: (error) => {
+            setReviewSubmitError(getReviewErrorMessage(error))
+          }
+        }
+      )
+    }
+  }
+
+  const handleDeleteReview = () => {
+    if (!activeReviewBooking || !activeReview) return
+    setReviewSubmitError(null)
+
+    deleteReviewMutation.mutate(activeReview.id, {
+      onSuccess: () => {
+        setActiveReviewBooking(null)
+        setTimeout(() => {
+          setSuccessModalMessage('Xóa đánh giá thành công!')
+        }, 150)
+        void myReviewsQuery.refetch()
+      },
+      onError: (error) => {
+        setReviewSubmitError(getReviewErrorMessage(error))
+      }
+    })
   }
 
   if (bookingsQuery.isLoading && !bookingsQuery.data) {
@@ -356,27 +444,42 @@ export default function UserBookingsPage() {
           </div>
         ) : null}
 
-        <div className='flex flex-wrap gap-2 rounded-2xl bg-slate-100/80 p-2'>
-          {bookingFilters.map((filter) => (
-            <Button
-              className='rounded-xl'
-              key={filter.key}
-              onClick={() => setActiveFilter(filter.key)}
-              size='sm'
-              variant={activeFilter === filter.key ? 'default' : 'secondary'}
-            >
-              {filter.label} ({filterCounts[filter.key]})
-            </Button>
-          ))}
-        </div>
+        <StatusFilterPills
+          onValueChange={setActiveFilter}
+          options={bookingFilters}
+          value={activeFilter}
+        />
 
         {filteredBookings.length === 0 ? (
-          <EmptyState
-            actionHref={path.discover}
-            actionLabel='Tìm mentor'
-            description='Hãy thử một bộ lọc khác hoặc tìm mentor phù hợp cho buổi học tiếp theo.'
-            title='Chưa có lịch học phù hợp'
-          />
+          <Card className='overflow-hidden rounded-[28px] border-slate-200 bg-white shadow-sm'>
+            <CardContent className='grid gap-5 p-6 md:grid-cols-[minmax(0,1fr)_220px] md:items-center'>
+              <div className='flex items-start gap-4'>
+                <div className='bg-primary/10 text-primary flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl'>
+                  <BookOpenText aria-hidden='true' size={22} />
+                </div>
+                <div className='min-w-0 space-y-2'>
+                  <p className='text-ink text-2xl font-semibold tracking-tight'>
+                    Chưa có booking trong mục {getBookingFilterLabel(activeFilter)}
+                  </p>
+                  <p className='text-muted max-w-2xl text-sm leading-relaxed'>
+                    Bạn có thể đặt một buổi học mới từ danh sách mentor. Sau khi tạo booking, trạng
+                    thái thanh toán và lịch học sẽ được cập nhật tại đây.
+                  </p>
+                </div>
+              </div>
+
+              <Link
+                className={buttonVariants({
+                  className: 'h-11 rounded-xl md:justify-self-end',
+                  size: 'lg'
+                })}
+                to={path.discover}
+              >
+                <Search aria-hidden='true' size={16} />
+                Đặt lịch với mentor
+              </Link>
+            </CardContent>
+          </Card>
         ) : (
           <div className='space-y-4'>
             {filteredBookings.map((booking, index) => {
@@ -393,6 +496,9 @@ export default function UserBookingsPage() {
                 booking.status === 'CONFIRMED' &&
                 booking.meetingType === 'ONLINE' &&
                 Boolean(booking.meetingLink?.trim())
+              const hasReview = !!reviewByBookingId[booking.id]
+              const canReview = booking.status === 'COMPLETED' && !hasReview
+              const hasReviewed = booking.status === 'COMPLETED' && hasReview
               const shouldFindAnotherMentor =
                 booking.status === 'CANCELLED' || booking.status === 'REJECTED'
 
@@ -516,6 +622,35 @@ export default function UserBookingsPage() {
                               <Video aria-hidden='true' size={16} />
                               Vào lớp học
                             </a>
+                          ) : canReview ? (
+                            <Button
+                              className='w-full'
+                              onClick={() => {
+                                setReviewSubmitError(null)
+                                setActiveReviewBooking(booking)
+                              }}
+                              size='lg'
+                            >
+                              <Star aria-hidden='true' size={16} />
+                              Viết đánh giá
+                            </Button>
+                          ) : hasReviewed ? (
+                            <Button
+                              className='w-full'
+                              variant='outline'
+                              onClick={() => {
+                                setReviewSubmitError(null)
+                                setActiveReviewBooking(booking)
+                              }}
+                              size='lg'
+                            >
+                              <Star
+                                className='fill-amber-400 text-amber-400'
+                                aria-hidden='true'
+                                size={16}
+                              />
+                              Đã đánh giá
+                            </Button>
                           ) : shouldFindAnotherMentor ? (
                             <Link
                               className={buttonVariants({ className: 'w-full', size: 'lg' })}
@@ -547,17 +682,6 @@ export default function UserBookingsPage() {
                             <UserRound aria-hidden='true' size={15} />
                             Hồ sơ mentor
                           </Link>
-                          <Link
-                            className={buttonVariants({
-                              className: 'w-full',
-                              size: 'default',
-                              variant: 'ghost'
-                            })}
-                            to={path.user.messages}
-                          >
-                            <MessageSquare aria-hidden='true' size={15} />
-                            Nhắn tin mentor
-                          </Link>
                         </div>
 
                         {paymentFeedback ? (
@@ -582,6 +706,33 @@ export default function UserBookingsPage() {
           </div>
         )}
       </div>
+
+      <ReviewFormModal
+        open={!!activeReviewBooking}
+        onOpenChange={(open) => !open && setActiveReviewBooking(null)}
+        initialData={
+          activeReview
+            ? { rating: activeReview.rating, comment: activeReview.comment || '' }
+            : undefined
+        }
+        onSubmit={handleReviewSubmit}
+        isSubmitting={createReviewMutation.isPending || updateReviewMutation.isPending}
+        title={
+          activeReviewBooking
+            ? `Đánh giá mentor ${activeReviewBooking.mentorName}`
+            : 'Viết đánh giá'
+        }
+        isExpired={isReviewExpired}
+        submitError={reviewSubmitError}
+        onDelete={activeReview ? handleDeleteReview : undefined}
+        isDeleting={deleteReviewMutation.isPending}
+      />
+
+      <SuccessModal
+        open={!!successModalMessage}
+        onOpenChange={(open) => !open && setSuccessModalMessage(null)}
+        title={successModalMessage || ''}
+      />
     </DashboardPage>
   )
 }

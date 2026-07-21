@@ -1,4 +1,5 @@
-import { Navigate, Outlet, useLocation } from 'react-router'
+import { useEffect } from 'react'
+import { Outlet, useLocation, useNavigate } from 'react-router'
 
 import { Spinner } from '@/components/ui/spinner'
 import { path } from '@/config/path'
@@ -8,6 +9,14 @@ export default function ProtectedLayout() {
   const accessToken = useAuthStore((state) => state.accessToken)
   const hasHydrated = useAuthStore((state) => state.hasHydrated)
   const location = useLocation()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    if (!accessToken) {
+      const redirectTo = encodeURIComponent(`${location.pathname}${location.search}`)
+      navigate(`${path.login}?redirectTo=${redirectTo}`, { replace: true })
+    }
+  }, [accessToken, location, navigate])
 
   if (!hasHydrated) {
     return (
@@ -18,8 +27,7 @@ export default function ProtectedLayout() {
   }
 
   if (!accessToken) {
-    const redirectTo = encodeURIComponent(`${location.pathname}${location.search}`)
-    return <Navigate to={`${path.login}?redirectTo=${redirectTo}`} replace />
+    return null
   }
 
   return <Outlet />

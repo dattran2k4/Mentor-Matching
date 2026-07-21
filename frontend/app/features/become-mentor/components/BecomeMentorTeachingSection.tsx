@@ -2,6 +2,8 @@ import type { ReactNode } from 'react'
 import { Controller } from 'react-hook-form'
 import type { Control, FieldErrors, UseFormRegister } from 'react-hook-form'
 
+import { AppSelect } from '@/components/ui/app-select'
+import type { AppSelectOption } from '@/components/ui/app-select'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { NumericInput } from '@/components/ui/numeric-input'
@@ -9,6 +11,12 @@ import { Textarea } from '@/components/ui/textarea'
 import type { BecomeMentorProfileFormValues } from '@/features/become-mentor/schemas'
 
 import { BecomeMentorSectionCard } from './BecomeMentorSectionCard'
+
+const meetingTypeOptions: AppSelectOption[] = [
+  { label: 'Online', value: 'ONLINE' },
+  { label: 'Trực tiếp', value: 'OFFLINE' },
+  { label: 'Online và trực tiếp', value: 'HYBRID' }
+]
 
 type BecomeMentorTeachingSectionProps = {
   control: Control<BecomeMentorProfileFormValues>
@@ -24,12 +32,7 @@ export function BecomeMentorTeachingSection({
   register
 }: BecomeMentorTeachingSectionProps) {
   return (
-    <BecomeMentorSectionCard
-      description='Phần này giúp học viên hiểu bạn dạy cho ai, theo phong cách nào và vì sao nên đặt lịch với bạn.'
-      eyebrow={eyebrow}
-      id='teaching'
-      title='Định vị chuyên môn'
-    >
+    <BecomeMentorSectionCard eyebrow={eyebrow} id='teaching' title='Định vị chuyên môn'>
       <div className='grid gap-4'>
         <Field>
           <Label htmlFor='mentor-headline'>Tiêu đề ngắn</Label>
@@ -90,17 +93,61 @@ export function BecomeMentorTeachingSection({
               id='mentor-current-position'
               placeholder='Ví dụ: Giáo viên, Software Engineer, IELTS Tutor'
             />
+            <FieldError message={errors.currentPosition?.message} />
           </Field>
         </div>
 
-        <Field>
-          <Label htmlFor='mentor-workplace'>Nơi công tác / học tập</Label>
-          <Input
-            {...register('workplace')}
-            id='mentor-workplace'
-            placeholder='Tên công ty, trung tâm, trường đại học hoặc tổ chức liên quan'
-          />
-        </Field>
+        <div className='grid gap-4 md:grid-cols-2'>
+          <Field>
+            <Label htmlFor='mentor-workplace'>Khu vực làm việc</Label>
+            <Input
+              {...register('workplace')}
+              id='mentor-workplace'
+              placeholder='Ví dụ: TP. Thủ Đức, Quận 1, Cầu Giấy'
+            />
+            <FieldError message={errors.workplace?.message} />
+          </Field>
+
+          <Field>
+            <Label>Hình thức dạy</Label>
+            <Controller
+              control={control}
+              name='meetingType'
+              render={({ field }) => (
+                <AppSelect
+                  ariaLabel='Chọn hình thức dạy'
+                  onValueChange={field.onChange}
+                  options={meetingTypeOptions}
+                  placeholder='Chọn hình thức dạy'
+                  value={field.value}
+                />
+              )}
+            />
+            <FieldError message={errors.meetingType?.message} />
+          </Field>
+        </div>
+
+        <div className='grid gap-4 md:grid-cols-2'>
+          <Field>
+            <Label htmlFor='mentor-education'>Học vấn</Label>
+            <Input
+              {...register('education')}
+              id='mentor-education'
+              placeholder='Ví dụ: Cử nhân Sư phạm Toán, Đại học Bách Khoa'
+            />
+            <FieldError message={errors.education?.message} />
+          </Field>
+
+          <Field>
+            <Label htmlFor='mentor-major'>Chuyên ngành</Label>
+            <Input
+              {...register('major')}
+              id='mentor-major'
+              placeholder='Ví dụ: Sư phạm Toán, Khoa học máy tính'
+            />
+            <FieldError message={errors.major?.message} />
+          </Field>
+        </div>
       </div>
     </BecomeMentorSectionCard>
   )

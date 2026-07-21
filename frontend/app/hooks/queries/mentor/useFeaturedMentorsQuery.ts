@@ -2,60 +2,19 @@ import { queryOptions, useQuery } from '@tanstack/react-query'
 
 import { QUERY_KEYS } from '@/constants/query-keys'
 import { mentorApi } from '@/services/mentor.api'
-import type {
-  MentorsQueryParams,
-  MentorAvailabilityDetailApiResponse,
-  MentorDetailApiResponse,
-  MentorListItemApiResponse,
-  MentorOptionDetailApiResponse,
-  MentorSubjectDetailApiResponse
-} from '@/types/api/mentor'
-
-export type FeaturedMentorApiBundle = {
-  mentor: MentorListItemApiResponse
-  detail: MentorDetailApiResponse | null
-  subjects: MentorSubjectDetailApiResponse[]
-  traits: MentorOptionDetailApiResponse[]
-  availabilities: MentorAvailabilityDetailApiResponse[]
-}
+import type { MentorsQueryParams, MentorListItemApiResponse } from '@/types/api/mentor'
 
 export type FeaturedMentorsQueryParams = Pick<
   MentorsQueryParams,
   'page' | 'size' | 'sortBy' | 'sortDir'
 >
 
-async function fetchFeaturedMentorBundle(
-  mentor: MentorListItemApiResponse
-): Promise<FeaturedMentorApiBundle> {
-  const [detailResult, subjectsResult, traitsResult, availabilitiesResult] =
-    await Promise.allSettled([
-      mentorApi.getMentorDetail(mentor.id),
-      mentorApi.getMentorSubjects(mentor.id),
-      mentorApi.getMentorTraits(mentor.id),
-      mentorApi.getMentorAvailabilities(mentor.id)
-    ])
-
-  return {
-    mentor,
-    detail: detailResult.status === 'fulfilled' ? detailResult.value.data : null,
-    subjects: subjectsResult.status === 'fulfilled' ? subjectsResult.value.data : [],
-    traits:
-      traitsResult.status === 'fulfilled'
-        ? [...traitsResult.value.data.highlights, ...traitsResult.value.data.personalities].filter(
-            (option, index, options) => options.findIndex(({ id }) => id === option.id) === index
-          )
-        : [],
-    availabilities:
-      availabilitiesResult.status === 'fulfilled' ? availabilitiesResult.value.data : []
-  }
-}
-
 async function fetchFeaturedMentors(
   params: FeaturedMentorsQueryParams
-): Promise<FeaturedMentorApiBundle[]> {
+): Promise<MentorListItemApiResponse[]> {
   const mentorPage = (await mentorApi.getMentors(params)).data
 
-  return Promise.all(mentorPage.data.map(fetchFeaturedMentorBundle))
+  return mentorPage.data
 }
 
 export function getFeaturedMentorsQueryOptions(params: FeaturedMentorsQueryParams) {

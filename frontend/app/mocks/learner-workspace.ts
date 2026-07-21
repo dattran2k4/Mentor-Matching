@@ -11,25 +11,6 @@ export type LearnerBookingItem = Booking & {
   secondaryAction: LearnerBookingAction
 }
 
-export type LearnerConversationMessage = {
-  id: string
-  author: 'learner' | 'mentor'
-  text: string
-  sentAt: string
-}
-
-export type LearnerConversation = {
-  id: string
-  mentorName: string
-  mentorHeadline: string
-  bookingContext: string
-  lastMessage: string
-  lastMessageAt: string
-  unreadCount: number
-  statusLabel: string
-  messages: LearnerConversationMessage[]
-}
-
 export type LearnerProfileDraft = {
   fullName: string
   email: string
@@ -144,63 +125,6 @@ export const learnerBookings: LearnerBookingItem[] = [
     summary: 'Buổi học không diễn ra như dự kiến, cần xem lại ghi chú với mentor.',
     primaryAction: { label: 'Xem ghi chú', variant: 'secondary' },
     secondaryAction: { label: 'Liên hệ mentor', variant: 'secondary' }
-  }
-]
-
-export const learnerConversations: LearnerConversation[] = [
-  {
-    id: 'conversation-1',
-    mentorName: 'Nguyễn Minh Anh',
-    mentorHeadline: 'Mentor Toán THCS',
-    bookingContext: 'Toán lớp 9 · Buổi học 11/06 lúc 14:00',
-    lastMessage: 'Mình đã gửi lại đề luyện, em xem trước câu 3 và 4 nhé.',
-    lastMessageAt: '10 phút trước',
-    unreadCount: 1,
-    statusLabel: 'Liên quan buổi học sắp tới',
-    messages: [
-      {
-        id: 'msg-1',
-        author: 'mentor',
-        text: 'Chị đã gửi lại đề luyện. Em xem trước câu 3 và 4 để buổi tới mình vào nhanh hơn nhé.',
-        sentAt: '14:10'
-      },
-      {
-        id: 'msg-2',
-        author: 'learner',
-        text: 'Dạ em xem rồi ạ. Em đang hơi vướng phần hình học, buổi tới mình ưu tiên phần đó giúp em nhé.',
-        sentAt: '14:14'
-      },
-      {
-        id: 'msg-3',
-        author: 'mentor',
-        text: 'Được em, chị sẽ dành 20 phút đầu để xử lý phần hình học trước.',
-        sentAt: '14:18'
-      }
-    ]
-  },
-  {
-    id: 'conversation-2',
-    mentorName: 'Trần Quốc Huy',
-    mentorHeadline: 'Mentor IELTS Foundation',
-    bookingContext: 'IELTS Foundation · Chờ thanh toán',
-    lastMessage: 'Khi thanh toán xong mình sẽ chốt lại mục tiêu speaking đầu vào.',
-    lastMessageAt: 'Hôm qua',
-    unreadCount: 0,
-    statusLabel: 'Chờ xác nhận buổi học',
-    messages: [
-      {
-        id: 'msg-4',
-        author: 'mentor',
-        text: 'Sau khi em thanh toán xong, anh sẽ gửi checklist đầu vào để mình chốt mục tiêu speaking.',
-        sentAt: '19:40'
-      },
-      {
-        id: 'msg-5',
-        author: 'learner',
-        text: 'Dạ anh, tối nay em sẽ hoàn tất thanh toán.',
-        sentAt: '19:52'
-      }
-    ]
   }
 ]
 

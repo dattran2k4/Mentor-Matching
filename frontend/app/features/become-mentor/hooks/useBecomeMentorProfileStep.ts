@@ -112,7 +112,7 @@ export function useBecomeMentorProfileStep({
   const handleSubmit = form.handleSubmit(async (values) => {
     avatarField.setErrorMessage(null)
 
-    if (!avatarField.value.mediaId) {
+    if (!avatarField.value.mediaId && !avatarField.value.previewUrl) {
       avatarField.setErrorMessage('Vui lòng chọn ảnh đại diện')
       return
     }
@@ -123,7 +123,10 @@ export function useBecomeMentorProfileStep({
       : await createCurrentMentorMutation.mutateAsync(payload)
     let savedCurrentMentor = profileResult.currentMentor
 
-    if (avatarField.value.mediaId !== savedCurrentMentor.avatarMediaId) {
+    if (
+      avatarField.value.mediaId &&
+      avatarField.value.mediaId !== savedCurrentMentor.avatarMediaId
+    ) {
       const avatarResult = await updateCurrentMentorAvatarMutation.mutateAsync({
         avatarMediaId: avatarField.value.mediaId
       })
@@ -170,7 +173,14 @@ export function useBecomeMentorProfileStep({
       /* Đổi thành phố và xóa quận/huyện cũ để chọn lại. */
       onCurrentCityChange: (cityId: string) => {
         form.setValue('currentCityId', cityId, { shouldDirty: true, shouldValidate: true })
-        form.setValue('currentDistrictId', '', { shouldDirty: true, shouldValidate: true })
+        form.setValue('currentDistrictId', '', { shouldDirty: true, shouldValidate: false })
+        form.clearErrors('currentDistrictId')
+      },
+      onCurrentDistrictChange: (districtId: string) => {
+        form.setValue('currentDistrictId', districtId, {
+          shouldDirty: true,
+          shouldValidate: true
+        })
       },
       register: form.register
     },

@@ -1,8 +1,7 @@
 import {
   Calendar,
-  Heart,
+  CreditCard,
   LayoutDashboard,
-  MessageSquare,
   Settings,
   Users,
   UserCircle,
@@ -10,7 +9,8 @@ import {
   DollarSign,
   BarChart3,
   Shield,
-  GraduationCap
+  GraduationCap,
+  ClipboardList
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -26,8 +26,7 @@ export type DashboardNavItem = {
 export const userNavItems: DashboardNavItem[] = [
   { label: 'Tổng quan', to: path.user.root, icon: LayoutDashboard, end: true },
   { label: 'Lịch học', to: path.user.bookings, icon: Calendar },
-  { label: 'Yêu thích', to: path.user.favorites, icon: Heart },
-  { label: 'Tin nhắn', to: path.user.messages, icon: MessageSquare },
+  { label: 'Thanh toán', to: path.user.payments, icon: CreditCard },
   { label: 'Hồ sơ', to: path.user.profile, icon: UserCircle }
 ]
 
@@ -44,6 +43,8 @@ export const adminNavItems: DashboardNavItem[] = [
   { label: 'Tổng quan', to: path.admin.root, icon: LayoutDashboard, end: true },
   { label: 'Người dùng', to: path.admin.users, icon: Users },
   { label: 'Mentor', to: path.admin.mentors, icon: Shield },
+  { label: 'Booking', to: path.admin.bookings, icon: ClipboardList },
+  { label: 'Danh mục', to: path.admin.catalog, icon: BookOpen },
   { label: 'Báo cáo', to: path.admin.reports, icon: BarChart3 },
   { label: 'Cài đặt', to: path.admin.settings, icon: Settings }
 ]

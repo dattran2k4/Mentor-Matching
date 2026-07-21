@@ -6,6 +6,7 @@ import type {
   BookingListPageApiResponse,
   CreateBookingApiResponse,
   CreateBookingRequest,
+  ForceCancelBookingRequest,
   GetBookingsQueryParams,
   GetMentorBookingsQueryParams,
   GetMyBookingsQueryParams
@@ -14,7 +15,9 @@ import type {
 const BOOKING_ENDPOINTS = {
   bookings: 'bookings',
   myBookings: 'bookings/me',
-  myMentorBookings: 'bookings/mentor/me'
+  myMentorBookings: 'bookings/mentor/me',
+  completeBooking: (bookingId: number) => `bookings/${bookingId}/complete`,
+  forceCancelBooking: (bookingId: number) => `bookings/${bookingId}/force-cancel`
 } as const
 
 const defaultBookingApi = {
@@ -49,6 +52,17 @@ const defaultBookingApi = {
       await http.get<ApiResponse<BookingListPageApiResponse>>(BOOKING_ENDPOINTS.myMentorBookings, {
         params
       })
+    ).data,
+
+  completeBookingByMentor: async (bookingId: number): Promise<ApiResponse<null>> =>
+    (await http.patch<ApiResponse<null>>(BOOKING_ENDPOINTS.completeBooking(bookingId))).data,
+
+  forceCancelBooking: async (
+    bookingId: number,
+    payload: ForceCancelBookingRequest
+  ): Promise<ApiResponse<null>> =>
+    (
+      await http.patch<ApiResponse<null>>(BOOKING_ENDPOINTS.forceCancelBooking(bookingId), payload)
     ).data
 }
 

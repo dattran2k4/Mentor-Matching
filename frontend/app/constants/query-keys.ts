@@ -33,7 +33,21 @@ export const QUERY_KEYS = {
       ['mentor', 'featured', params] as const
   },
   payment: {
-    detail: (paymentId: number) => ['payment', 'detail', paymentId] as const
+    detail: (paymentId: number) => ['payment', 'detail', paymentId] as const,
+    my: (params: {
+      page: number
+      size: number
+      status: string | null
+      sortBy: string | null
+      sortDir: string | null
+    }) => ['payment', 'me', params] as const,
+    mentorMe: (params: {
+      page: number
+      size: number
+      status: string | null
+      sortBy: string | null
+      sortDir: string | null
+    }) => ['payment', 'mentor-me', params] as const
   },
   booking: {
     me: ['booking', 'me'] as const,
@@ -43,11 +57,24 @@ export const QUERY_KEYS = {
       status: string | null
       meetingType: string | null
     }) => ['booking', 'me', params] as const,
-    mentorMe: ['booking', 'mentor-me'] as const
+    mentorMeBase: ['booking', 'mentor-me'] as const,
+    mentorMe: (params: {
+      page: number
+      size: number
+      status: string | null
+      meetingType: string | null
+      bookingDateFrom: string | null
+      bookingDateTo: string | null
+    }) => ['booking', 'mentor-me', params] as const
   },
   location: {
     cities: (search: string) => ['location', 'cities', search] as const,
     districts: (cityId: number, search: string) =>
       ['location', 'districts', cityId, search] as const
+  },
+  notification: {
+    base: ['notification'] as const,
+    list: (params: { page: number; size: number }) => ['notification', 'list', params] as const,
+    unreadCount: ['notification', 'unreadCount'] as const
   }
 } as const

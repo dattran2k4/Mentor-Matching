@@ -52,7 +52,7 @@ export function MentorAvailabilityModal({ open, onOpenChange }: MentorAvailabili
 
         <div className='flex items-center justify-end gap-3 border-t border-slate-200 px-7 py-4'>
           <Button
-            className='h-12 rounded-xl px-5 text-base'
+            className='h-12 rounded-xl border-slate-300 bg-white px-5 text-base text-slate-700 hover:bg-slate-50 hover:text-slate-900'
             onClick={handleClose}
             variant='outline'
           >

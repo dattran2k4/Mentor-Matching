@@ -34,3 +34,15 @@ dist/
 
 # Private Codex skills
 codex-skills/
+
+
+# Local planning documents
+/task/
+#doc
+*.docx
+report_tools/
+*.png
+#doc
+*.docx
+report_tools/
+*.png

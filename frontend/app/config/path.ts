@@ -12,8 +12,7 @@ export const path = {
   user: {
     root: '/user',
     bookings: '/user/bookings',
-    favorites: '/user/favorites',
-    messages: '/user/messages',
+    payments: '/user/payments',
     profile: '/user/profile'
   },
 
@@ -30,6 +29,8 @@ export const path = {
     root: '/admin',
     users: '/admin/users',
     mentors: '/admin/mentors',
+    bookings: '/admin/bookings',
+    catalog: '/admin/catalog',
     reports: '/admin/reports',
     settings: '/admin/settings'
   }
