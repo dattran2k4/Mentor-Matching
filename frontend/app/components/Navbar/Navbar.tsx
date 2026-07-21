@@ -4,6 +4,7 @@ import { Link, NavLink, useNavigate } from 'react-router'
 import { motion, AnimatePresence } from 'framer-motion'
 
 import { BrandLogo } from '@/components/BrandLogo'
+import { NotificationBell } from '@/components/Notification/NotificationBell'
 import { buttonVariants } from '@/components/ui/button'
 import { path } from '@/config/path'
 import { ROLES } from '@/constants/roles'
@@ -107,6 +108,7 @@ const Navbar = () => {
 
           {accessToken ? (
             <>
+              <NotificationBell />
               {dashboardPath ? (
                 <Link
                   className={cn(

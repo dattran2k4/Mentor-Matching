@@ -6,6 +6,7 @@ import type {
   BookingListPageApiResponse,
   CreateBookingApiResponse,
   CreateBookingRequest,
+  ForceCancelBookingRequest,
   GetBookingsQueryParams,
   GetMentorBookingsQueryParams,
   GetMyBookingsQueryParams
@@ -276,5 +277,27 @@ export const mockBookingApi = {
     )
 
     return buildSuccessResponse(null, 'Complete booking successfully')
+  },
+
+  async forceCancelBooking(
+    bookingId: number,
+    payload: ForceCancelBookingRequest
+  ): Promise<ApiResponse<null>> {
+    await delay()
+    requireMockSession()
+
+    mockBookings = mockBookings.map((booking) =>
+      booking.id === bookingId
+        ? {
+            ...booking,
+            status: 'CANCELLED',
+            cancelledBy: 0,
+            cancelReason: payload.cancelReason,
+            updatedAt: new Date().toISOString()
+          }
+        : booking
+    )
+
+    return buildSuccessResponse(null, 'Force cancel booking successfully')
   }
 }

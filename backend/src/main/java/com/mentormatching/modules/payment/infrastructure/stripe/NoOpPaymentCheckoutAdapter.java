@@ -18,4 +18,9 @@ public class NoOpPaymentCheckoutAdapter implements PaymentCheckoutPort {
         return new CheckoutSessionResult("test_checkout_session_" + payment.getId(),
                 "http://localhost/test-checkout/" + payment.getId(), LocalDateTime.now().plusMinutes(30));
     }
+
+    @Override
+    public void refundPayment(Payment payment) {
+        // no-op: Stripe refunds are not exercised in the test profile
+    }
 }

@@ -71,5 +71,10 @@ export const QUERY_KEYS = {
     cities: (search: string) => ['location', 'cities', search] as const,
     districts: (cityId: number, search: string) =>
       ['location', 'districts', cityId, search] as const
+  },
+  notification: {
+    base: ['notification'] as const,
+    list: (params: { page: number; size: number }) => ['notification', 'list', params] as const,
+    unreadCount: ['notification', 'unreadCount'] as const
   }
 } as const

@@ -30,7 +30,7 @@ export function ReviewItem({ review, isOwner, onEdit, onDelete }: ReviewItemProp
       <div className='flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-blue-100 font-bold text-blue-700'>
         {initials}
       </div>
-      
+
       <div className='flex-1 space-y-1.5'>
         <div className='flex flex-wrap items-start justify-between gap-2'>
           <div>
@@ -40,7 +40,7 @@ export function ReviewItem({ review, isOwner, onEdit, onDelete }: ReviewItemProp
               <span className='text-sm text-slate-400'>{formattedDate}</span>
             </div>
           </div>
-          
+
           {isOwner && (
             <div className='flex items-center gap-2'>
               <Button
@@ -64,9 +64,9 @@ export function ReviewItem({ review, isOwner, onEdit, onDelete }: ReviewItemProp
             </div>
           )}
         </div>
-        
+
         {review.comment && (
-          <p className='mt-2 text-[0.98rem] text-slate-700 leading-relaxed'>{review.comment}</p>
+          <p className='mt-2 text-[0.98rem] leading-relaxed text-slate-700'>{review.comment}</p>
         )}
       </div>
     </div>

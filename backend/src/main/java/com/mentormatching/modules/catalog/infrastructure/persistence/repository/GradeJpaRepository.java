@@ -10,4 +10,6 @@ import com.mentormatching.modules.catalog.infrastructure.persistence.entity.Grad
 public interface GradeJpaRepository extends JpaRepository<GradeJpaEntity, Long> {
 
     List<GradeJpaEntity> findByLevelGroup(GradeLevelGroup levelGroup);
+
+    boolean existsByNameIgnoreCase(String name);
 }

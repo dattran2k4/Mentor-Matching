@@ -14,4 +14,8 @@ public interface SubjectRepositoryPort {
     List<Subject> findByCategoryId(Long categoryId);
 
     List<Subject> findAll();
+
+    boolean existsByNameIgnoreCase(String name);
+
+    void deleteById(Long id);
 }

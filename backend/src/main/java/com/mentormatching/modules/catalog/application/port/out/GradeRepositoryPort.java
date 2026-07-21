@@ -15,4 +15,8 @@ public interface GradeRepositoryPort {
     List<Grade> findByLevelGroup(GradeLevelGroup levelGroup);
 
     List<Grade> findAll();
+
+    boolean existsByNameIgnoreCase(String name);
+
+    void deleteById(Long id);
 }

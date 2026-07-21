@@ -3,10 +3,15 @@ import { useAuthStore } from '@/stores/auth-store'
 import { getMockEmailFromToken, mockUsers } from '@/services/mock/auth.mock.api'
 import type { ApiResponse } from '@/types/api/common'
 import type {
+  AdminUserDetailApiResponse,
+  AdminUserListItemApiResponse,
+  AdminUserListPageApiResponse,
   CurrentUserApiResponse,
+  GetAdminUsersQueryParams,
   LearnerProfileApiResponse,
   UpdateCurrentLearnerProfileRequest,
   UpdateCurrentUserRequest,
+  UpdateUserStatusRequest,
   UserTypeApiResponse
 } from '@/types/api/user'
 import type { CurrentUser } from '@/types/models/user'
@@ -54,6 +59,95 @@ const mockLearnerProfileStateByEmail: Record<string, LearnerProfileApiResponse> 
     learningGoal: 'Cung co nen tang Toan va Tieng Anh de cai thien ket qua hoc tap.',
     createdAt: '2026-06-01T09:00:00',
     updatedAt: '2026-06-09T09:00:00'
+  }
+}
+
+let adminUserRecords: AdminUserListItemApiResponse[] = [
+  {
+    id: 1,
+    fullName: 'Học viên Test',
+    email: 'learner@test.com',
+    phone: '0900000001',
+    role: 'LEARNER',
+    userType: 'STUDENT',
+    status: 'ACTIVE',
+    createdAt: '2026-05-01T09:00:00'
+  },
+  {
+    id: 2,
+    fullName: 'Mentor Test',
+    email: 'mentor@test.com',
+    phone: '0900000002',
+    role: 'MENTOR',
+    userType: 'WORKING_ADULT',
+    status: 'ACTIVE',
+    createdAt: '2026-05-01T09:00:00'
+  },
+  {
+    id: 3,
+    fullName: 'Admin Test',
+    email: 'admin@test.com',
+    phone: '0900000003',
+    role: 'ADMIN',
+    userType: 'WORKING_ADULT',
+    status: 'ACTIVE',
+    createdAt: '2026-05-01T09:00:00'
+  },
+  {
+    id: 4,
+    fullName: 'Tran Quoc Huy',
+    email: 'huy.tran@test.com',
+    phone: '0900000004',
+    role: 'MENTOR',
+    userType: 'WORKING_ADULT',
+    status: 'ACTIVE',
+    createdAt: '2026-05-10T09:00:00'
+  },
+  {
+    id: 5,
+    fullName: 'Ngoc Linh',
+    email: 'linh.ngoc@test.com',
+    phone: '0900000005',
+    role: 'LEARNER',
+    userType: 'STUDENT',
+    status: 'INACTIVE',
+    createdAt: '2026-05-15T09:00:00'
+  },
+  {
+    id: 6,
+    fullName: 'Pham Van Spam',
+    email: 'spam.account@test.com',
+    phone: '0900000006',
+    role: 'LEARNER',
+    userType: 'STUDENT',
+    status: 'BANNED',
+    createdAt: '2026-05-20T09:00:00'
+  }
+]
+
+function paginateAdminUsers(
+  items: AdminUserListItemApiResponse[],
+  page = 1,
+  size = 10
+): AdminUserListPageApiResponse {
+  const totalItems = items.length
+  const totalPages = Math.max(1, Math.ceil(totalItems / size))
+  const startIndex = (page - 1) * size
+
+  return {
+    page,
+    pageSize: size,
+    totalPages,
+    totalItems,
+    data: items.slice(startIndex, startIndex + size)
+  }
+}
+
+function toAdminUserDetail(item: AdminUserListItemApiResponse): AdminUserDetailApiResponse {
+  return {
+    ...item,
+    totalBookings: item.role === 'LEARNER' ? 3 : 0,
+    totalSpent: item.role === 'LEARNER' ? 750000 : 0
   }
 }
 
@@ -196,5 +290,62 @@ export const mockUserApi = {
     }
 
     return buildSuccessResponse('Admin endpoint is reachable')
+  },
+
+  async getAdminUsers(
+    params?: GetAdminUsersQueryParams
+  ): Promise<ApiResponse<AdminUserListPageApiResponse>> {
+    await delay()
+    getCurrentMockSession()
+
+    const normalizedSearch = params?.search?.trim().toLowerCase() ?? ''
+    const filtered = adminUserRecords.filter((item) => {
+      const matchesSearch =
+        normalizedSearch.length === 0 ||
+        item.fullName.toLowerCase().includes(normalizedSearch) ||
+        item.email.toLowerCase().includes(normalizedSearch)
+      const matchesRole = !params?.role || item.role === params.role
+      const matchesStatus = !params?.status || item.status === params.status
+
+      return matchesSearch && matchesRole && matchesStatus
+    })
+
+    return buildSuccessResponse(
+      paginateAdminUsers(filtered, params?.page ?? 1, params?.size ?? 10),
+      'Get admin users successfully'
+    )
+  },
+
+  async getAdminUserDetail(userId: number): Promise<ApiResponse<AdminUserDetailApiResponse>> {
+    await delay()
+    getCurrentMockSession()
+
+    const item = adminUserRecords.find((record) => record.id === userId)
+    if (!item) {
+      throw new Error('Mock user not found')
+    }
+
+    return buildSuccessResponse(toAdminUserDetail(item), 'Get admin user detail successfully')
+  },
+
+  async updateUserStatus(
+    userId: number,
+    payload: UpdateUserStatusRequest
+  ): Promise<ApiResponse<AdminUserDetailApiResponse>> {
+    await delay()
+    getCurrentMockSession()
+
+    adminUserRecords = adminUserRecords.map((item) =>
+      item.id === userId
+        ? { ...item, status: payload.action === 'BAN' ? 'BANNED' : 'ACTIVE' }
+        : item
+    )
+
+    const updated = adminUserRecords.find((record) => record.id === userId)
+    if (!updated) {
+      throw new Error('Mock user not found')
+    }
+
+    return buildSuccessResponse(toAdminUserDetail(updated), 'Update user status successfully')
   }
 }

@@ -5,10 +5,7 @@ import type { PageQueryParams } from '@/types/api/common'
 
 import { reviewKeys } from './keys'
 
-export function useMentorReviewsQuery(
-  mentorId: number,
-  params?: Omit<PageQueryParams, 'page'>
-) {
+export function useMentorReviewsQuery(mentorId: number, params?: Omit<PageQueryParams, 'page'>) {
   return useInfiniteQuery({
     queryKey: reviewKeys.list(mentorId, params),
     queryFn: async ({ pageParam = 1 }) => {

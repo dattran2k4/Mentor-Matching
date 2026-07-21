@@ -116,6 +116,23 @@ public class Booking {
         touch();
     }
 
+    public void forceCancel(Long adminUserId, String cancelReason) {
+        if (status == BookingStatus.COMPLETED || status == BookingStatus.CANCELLED
+                || status == BookingStatus.REJECTED) {
+            throw new InvalidDataException("Booking in status " + status + " cannot be force cancelled");
+        }
+        if (adminUserId == null) {
+            throw new InvalidDataException("Admin user id is required when force cancelling booking");
+        }
+        if (cancelReason == null || cancelReason.isBlank()) {
+            throw new InvalidDataException("Cancel reason is required when force cancelling booking");
+        }
+        this.status = BookingStatus.CANCELLED;
+        this.cancelledBy = adminUserId;
+        this.cancelReason = cancelReason.trim();
+        touch();
+    }
+
     public Long getId() {
         return id;
     }
