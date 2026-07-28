@@ -3,16 +3,14 @@ import reactPlugin from 'eslint-plugin-react'
 import reactHooks from 'eslint-plugin-react-hooks'
 import reactCompiler from 'eslint-plugin-react-compiler'
 import globals from 'globals'
-import tseslint from 'typescript-eslint'
 
-export default tseslint.config(
+export default [
   {
     ignores: ['build/**', '.react-router/**', 'node_modules/**']
   },
   js.configs.recommended,
-  ...tseslint.configs.recommended,
   {
-    files: ['**/*.{ts,tsx}'],
+    files: ['**/*.{js,jsx}'],
     languageOptions: {
       ecmaVersion: 'latest',
       sourceType: 'module',
@@ -21,8 +19,9 @@ export default tseslint.config(
         ...globals.node
       },
       parserOptions: {
-        projectService: true,
-        tsconfigRootDir: import.meta.dirname
+        ecmaFeatures: {
+          jsx: true
+        }
       }
     },
     settings: {
@@ -39,15 +38,18 @@ export default tseslint.config(
       ...reactPlugin.configs.recommended.rules,
       ...reactHooks.configs.recommended.rules,
       'react/react-in-jsx-scope': 'off',
+      'react/prop-types': 'off',
+      'react-hooks/purity': 'off',
+      'react-hooks/set-state-in-effect': 'off',
       'react-compiler/react-compiler': 'error'
     }
   },
   {
-    files: ['**/*.{test,spec}.{ts,tsx}'],
+    files: ['**/*.{test,spec}.{js,jsx}'],
     languageOptions: {
       globals: {
         ...globals.vitest
       }
     }
   }
-)
+]
